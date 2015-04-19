@@ -1,0 +1,9 @@
+.project
+.settings/
+timetracker-backend/target/
+timetracker-ear/target/
+timetracker-web/target/
+timetracker-ear/.classpath
+timetracker-backend/.classpath
+timetracker-backend/.checkstyle
+timetracker-web/.classpath
