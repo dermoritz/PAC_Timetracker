@@ -7,3 +7,4 @@ timetracker-ear/.classpath
 timetracker-backend/.classpath
 timetracker-backend/.checkstyle
 timetracker-web/.classpath
+*.checkstyle

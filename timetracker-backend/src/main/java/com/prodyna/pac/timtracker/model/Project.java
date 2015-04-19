@@ -56,33 +56,7 @@ public class Project implements Serializable {
     @Column
     private String description;
     
-    /**
-     * A project could be referenced by many bookings.
-     */
-    @OneToMany(mappedBy = "project")
-    private List<Booking> bookings;
     
-    /**
-     * Users that are registered to this project.
-     */
-    @ManyToMany
-    private List<User> users;
-    
-    
-    /**
-     * @return the users
-     */
-    public final List<User> getUsers() {
-        return users;
-    }
-
-    /**
-     * @param users the users to set
-     */
-    public final void setUsers(final List<User> users) {
-        this.users = users;
-    }
-
     /**
      * @return the id
      */
@@ -143,20 +117,6 @@ public class Project implements Serializable {
         this.description = description;
     }
     
-    /**
-     * @return the bookings
-     */
-    public final List<Booking> getBookings() {
-        return bookings;
-    }
-
-    /**
-     * @param bookings the bookings to set
-     */
-    public final void setBookings(List<Booking> bookings) {
-        this.bookings = bookings;
-    }
-
     /**
      * Uses id, name and version to create hash.
      * 

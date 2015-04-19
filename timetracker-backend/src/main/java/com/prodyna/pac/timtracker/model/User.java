@@ -41,19 +41,6 @@ public class User implements Serializable {
     @Version
     @Column(name = "version")
     private int version;
-
-    /**
-     * A user has many bookings.
-     */
-    @OneToMany(mappedBy = "owner")
-    private List<Booking> bookings;
-    
-    /**
-     * A user is registered (by manager) for many projects.
-     */
-    @ManyToMany(mappedBy = "users")
-    private List<Project> projects;
-    
     
     /**
      * A user has a unique name.
@@ -66,21 +53,6 @@ public class User implements Serializable {
      */
     @Enumerated(EnumType.STRING)
     private UserRole role;
-    
-    
-    /**
-     * @return the projects
-     */
-    public final List<Project> getProjects() {
-        return projects;
-    }
-
-    /**
-     * @param projects the projects to set
-     */
-    public final void setProjects(List<Project> projects) {
-        this.projects = projects;
-    }
 
     /**
      * 
@@ -103,21 +75,6 @@ public class User implements Serializable {
      */
     public final void setVersion(final int version) {
         this.version = version;
-    }
-
-    /**
-     * @return the bookings
-     */
-    public final List<Booking> getBookings() {
-        return bookings;
-    }
-
-    /**
-     * @param bookings
-     *            the bookings to set
-     */
-    public final void setBookings(final List<Booking> bookings) {
-        this.bookings = bookings;
     }
 
     /**
