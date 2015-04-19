@@ -11,21 +11,25 @@ import javax.persistence.*;
  *
  */
 @Entity
-@IdClass(UserProjectKey.class)
+@Table(uniqueConstraints=@UniqueConstraint(columnNames={"user","project"}))
 public class UserProjects implements Serializable {
     
     /**
      * default id.
      */
     private static final long serialVersionUID = 1L;
-
     
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id", updatable = false, nullable = false)
+    private Long id;
+    
     @ManyToOne
+    @JoinColumn(name = "user")
     private User user;
     
-    @Id
     @ManyToOne
+    @JoinColumn(name = "project")
     private Project project;
     
     /**

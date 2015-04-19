@@ -49,7 +49,7 @@ public class Booking implements Serializable {
     /**
      * Link to user and project.
      */
-    @Column
+    @JoinColumn
     @NotNull
     private UserProjects userProject;
 
