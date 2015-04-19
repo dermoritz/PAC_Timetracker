@@ -10,6 +10,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Version;
 import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.NotNull;
@@ -49,7 +50,7 @@ public class Booking implements Serializable {
     /**
      * Link to user and project.
      */
-    @JoinColumn
+    @ManyToOne
     @NotNull
     private UserProjects userProject;
 
