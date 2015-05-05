@@ -1,19 +1,22 @@
 package com.prodyna.pac.timtracker.model;
 
-import java.io.Serializable;
-import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.persistence.Column;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.persistence.Version;
 import javax.validation.constraints.AssertTrue;
 import javax.validation.constraints.NotNull;
+
+import com.google.common.base.Preconditions;
+import com.prodyna.pac.timtracker.persistence.BaseEntity;
+import com.prodyna.pac.timtracker.persistence.Identifiable;
 
 /**
  * A booking has disjoint start and end time an owner ( {@link User} ) and a
@@ -23,23 +26,22 @@ import javax.validation.constraints.NotNull;
  *
  */
 @Entity
-public class Booking implements Serializable {
+public class Booking extends BaseEntity implements Identifiable {
 
     /**
      * Validation message if end is before start.
      */
     private static final String START_MUST_BEFORE_END = "Start must before end.";
     /**
-     * 
+     * default.
      */
     private static final long serialVersionUID = 1L;
     /**
      * internal id.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", updatable = false, nullable = false)
     private Long id;
+
     /**
      * Used for optimistic locking.
      */
@@ -52,21 +54,48 @@ public class Booking implements Serializable {
      */
     @ManyToOne
     @NotNull
-    private UserProjects userProject;
+    @Embedded
+    private UsersProjects userProject;
 
     /**
      * A booking always has a start time.
      */
-    @Column
+    @Temporal(TemporalType.TIMESTAMP)
     @NotNull
-    private Timestamp start;
+    private Date start;
 
     /**
      * A booking always has an end time.
      */
-    @Column
+    @Temporal(TemporalType.TIMESTAMP)
     @NotNull
-    private Timestamp end;
+    private Date end;
+
+    /**
+     * Required by JPA.
+     */
+    Booking() {
+
+    }
+    
+    /**
+     * 
+     * @param userProject links this to user and project
+     * @param start start time
+     * @param end end time
+     */
+    public Booking(final UsersProjects userProject, final Date start, final Date end) {
+        this.userProject = Preconditions.checkNotNull(userProject, "userProject must not be null.");
+        this.start = Preconditions.checkNotNull(start, "Start date must not be null.");
+        this.end = Preconditions.checkNotNull(end, "End date must not be null.");
+        if (end.compareTo(start) < 0) {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String startString = dateFormat.format(start);
+            String endString = dateFormat.format(end);
+            throw new IllegalArgumentException("Start date must before end date. Given start: " + startString
+                                               + " given end: " + endString);
+        }
+    }
 
     /**
      * 
@@ -81,31 +110,16 @@ public class Booking implements Serializable {
     /**
      * @return the userProject
      */
-    public final UserProjects getUserProject() {
+    public final UsersProjects getUserProject() {
         return userProject;
-    }
-
-    /**
-     * @param userProject
-     *            the userProject to set
-     */
-    public final void setUserProject(final UserProjects userProject) {
-        this.userProject = userProject;
     }
 
     /**
      * @return the id
      */
+    @Override
     public final Long getId() {
         return id;
-    }
-
-    /**
-     * @param id
-     *            the id to set
-     */
-    public final void setId(final Long id) {
-        this.id = id;
     }
 
     /**
@@ -113,14 +127,6 @@ public class Booking implements Serializable {
      */
     public final int getVersion() {
         return version;
-    }
-
-    /**
-     * @param version
-     *            the version to set
-     */
-    public final void setVersion(final int version) {
-        this.version = version;
     }
 
     /**
@@ -140,44 +146,26 @@ public class Booking implements Serializable {
     /**
      * @return the start
      */
-    public final Timestamp getStart() {
+    public final Date getStart() {
         return start;
-    }
-
-    /**
-     * @param start
-     *            the start to set
-     */
-    public final void setStart(final Timestamp start) {
-        this.start = start;
     }
 
     /**
      * @return the end
      */
-    public final Timestamp getEnd() {
+    public final Date getEnd() {
         return end;
     }
 
-    /**
-     * @param end
-     *            the end to set
-     */
-    public final void setEnd(final Timestamp end) {
-        this.end = end;
-    }
-
-   
+ 
 
     @Override
     public final int hashCode() {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((end == null) ? 0 : end.hashCode());
-        result = prime * result + ((id == null) ? 0 : id.hashCode());
         result = prime * result + ((start == null) ? 0 : start.hashCode());
         result = prime * result + ((userProject == null) ? 0 : userProject.hashCode());
-        result = prime * result + version;
         return result;
     }
 
@@ -189,7 +177,7 @@ public class Booking implements Serializable {
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        if (!(obj instanceof Booking)) {
             return false;
         }
         Booking other = (Booking) obj;
@@ -198,13 +186,6 @@ public class Booking implements Serializable {
                 return false;
             }
         } else if (!end.equals(other.end)) {
-            return false;
-        }
-        if (id == null) {
-            if (other.id != null) {
-                return false;
-            }
-        } else if (!id.equals(other.id)) {
             return false;
         }
         if (start == null) {
@@ -219,9 +200,6 @@ public class Booking implements Serializable {
                 return false;
             }
         } else if (!userProject.equals(other.userProject)) {
-            return false;
-        }
-        if (version != other.version) {
             return false;
         }
         return true;

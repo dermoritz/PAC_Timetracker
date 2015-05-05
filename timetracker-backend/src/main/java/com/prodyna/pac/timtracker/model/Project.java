@@ -1,19 +1,13 @@
 package com.prodyna.pac.timtracker.model;
 
-import javax.persistence.Entity;
-
-import java.io.Serializable;
-
-import javax.persistence.Id;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Column;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
+import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Version;
 
-import java.lang.Override;
-import java.util.List;
+import com.google.common.base.Strings;
+import com.prodyna.pac.timtracker.persistence.BaseEntity;
+import com.prodyna.pac.timtracker.persistence.Identifiable;
 
 /**
  * A project could be linked by many {@link Booking}.
@@ -22,10 +16,10 @@ import java.util.List;
  *
  */
 @Entity
-public class Project implements Serializable {
+public class Project extends BaseEntity implements Identifiable {
 
     /**
-     * 
+     * default.
      */
     private static final long serialVersionUID = 1L;
 
@@ -33,8 +27,6 @@ public class Project implements Serializable {
      * internal id.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", updatable = false, nullable = false)
     private Long id;
 
     /**
@@ -55,21 +47,35 @@ public class Project implements Serializable {
      */
     @Column
     private String description;
-    
-    
+
     /**
-     * @return the id
+     * Required by JPA.
      */
-    public final Long getId() {
-        return id;
+    Project() {
+
     }
 
     /**
-     * @param id
-     *            the id to set
+     * 
+     * @param name
+     *            unique name for project
+     * @param description
+     *            optional description
      */
-    public final void setId(final Long id) {
-        this.id = id;
+    public Project(final String name, final String description) {
+        if (Strings.isNullOrEmpty(name)) {
+            throw new IllegalArgumentException("Name must not be null or empty.");
+        }
+        this.name = name;
+        this.description = description;
+    }
+
+    /**
+     * @return the id
+     */
+    @Override
+    public final Long getId() {
+        return id;
     }
 
     /**
@@ -80,26 +86,10 @@ public class Project implements Serializable {
     }
 
     /**
-     * @param version
-     *            the version to set
-     */
-    public final void setVersion(final int version) {
-        this.version = version;
-    }
-
-    /**
      * @return the name
      */
     public final String getName() {
         return name;
-    }
-
-    /**
-     * @param name
-     *            the name to set
-     */
-    public final void setName(final String name) {
-        this.name = name;
     }
 
     /**
@@ -109,51 +99,34 @@ public class Project implements Serializable {
         return description;
     }
 
-    /**
-     * @param description
-     *            the description to set
-     */
-    public final void setDescription(final String description) {
-        this.description = description;
-    }
-    
-    /**
-     * Uses id, name and version to create hash.
-     * 
-     * @return hashCode
-     */
+
+
     @Override
-    public final int hashCode() {
+    public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((id == null) ? 0 : id.hashCode());
+        result = prime * result + ((description == null) ? 0 : description.hashCode());
         result = prime * result + ((name == null) ? 0 : name.hashCode());
-        result = prime * result + version;
         return result;
     }
 
-    /**
-     * @param obj
-     *            the other object
-     * @return true if id,name and version are equal.
-     */
     @Override
-    public final boolean equals(final Object obj) {
+    public boolean equals(Object obj) {
         if (this == obj) {
             return true;
         }
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        if (!(obj instanceof Project)) {
             return false;
         }
         Project other = (Project) obj;
-        if (id == null) {
-            if (other.id != null) {
+        if (description == null) {
+            if (other.description != null) {
                 return false;
             }
-        } else if (!id.equals(other.id)) {
+        } else if (!description.equals(other.description)) {
             return false;
         }
         if (name == null) {
@@ -161,9 +134,6 @@ public class Project implements Serializable {
                 return false;
             }
         } else if (!name.equals(other.name)) {
-            return false;
-        }
-        if (version != other.version) {
             return false;
         }
         return true;

@@ -6,6 +6,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.Set;
 
 import javax.inject.Inject;
@@ -23,9 +24,13 @@ import org.jboss.arquillian.persistence.Cleanup;
 import org.jboss.arquillian.persistence.TestExecutionPhase;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.prodyna.pac.timtracker.cdi.EntityManagerProducer;
 
 @RunWith(Arquillian.class)
@@ -40,8 +45,10 @@ public class BookingTest {
                                               Project.class,
                                               UserRole.class,
                                               Booking_.class,
-                                              UserProjects.class,
-                                              UserProjectKey.class);
+                                              UsersProjects.class,
+                                              UsersProjects.class,
+                                              Preconditions.class,
+                                              Strings.class);
     }
 
     @Inject
@@ -50,27 +57,21 @@ public class BookingTest {
     @Cleanup(phase = TestExecutionPhase.BEFORE)
     @Test
     public void persistBooking() {
-        // create a booking
-        Booking booking = new Booking();
-        booking.setStart(new Timestamp(0));
-        booking.setEnd(new Timestamp(2));
+
         // create a user - booking needs user/owner
-        User user = new User();
         String name = "Klaus";
-        user.setName(name);
+        User user = new User(name, UserRole.USER);
         em.persist(user);
 
         // create project, booking needs project
-        Project project = new Project();
-        String projectName = "theOne";
-        project.setName(projectName);
-        project.setDescription("blub");
+        Project project = new Project("theOne", "blub");
         em.persist(project);
-        //register user to project
-        UserProjects userProject = new UserProjects(user, project);
+        // register user to project
+        UsersProjects userProject = new UsersProjects(user, project);
         em.persist(userProject);
-        //
-        booking.setUserProject(userProject);
+
+        // create a booking
+        Booking booking = new Booking(userProject, new Date(0), new Date(1));
         // perists booking
         em.persist(booking);
 
@@ -105,45 +106,36 @@ public class BookingTest {
 
     // Validation tests
     
+    /**
+     * Rule to check expected exceptions. Rules must be public.
+     */
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
+
+    /**
+     * Check if validation failse due to nos {@link UsersProjects} set for
+     * booking.
+     */
     @Test
-    public void noUserProject() {
-        // create a booking
-        Booking booking = new Booking();
-        booking.setStart(new Timestamp(0));
-        booking.setEnd(new Timestamp(2));
-        // validate
-        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-        Set<ConstraintViolation<Booking>> validations = validator.validate(booking);
-        assertThat(validations.size(), is(1));
-        for (ConstraintViolation<Booking> violation : validations) {
-            assertTrue("Each validation message should contain \"null\". I got \"" + violation.getMessage() + "\"",
-                       violation.getMessage().contains("null"));
-        }
+    public final void noUserProject() {
+        expectedException.expect(NullPointerException.class);
+        expectedException.expectMessage("userProject must not be null");
+        new Booking(null, new Date(1), new Date(2));
     }
 
+    /**
+     * Check if validation fails due to end date is before start.
+     */
     @Test
-    public void endBeforStart() {
-        // create a booking
-        Booking booking = new Booking();
-        // set end before start
-        booking.setStart(new Timestamp(5));
-        booking.setEnd(new Timestamp(2));
-        // create a user - booking needs user/owner
-        User user = new User();
+    public final void endBeforeStart() {
         String name = "Klaus";
-        user.setName(name);
+        User user = new User(name, UserRole.USER);
         // create project, booking needs project
-        Project project = new Project();
-        String projectName = "theOne";
-        project.setName(projectName);
-        project.setDescription("blub");
-        
-        UserProjects userProjects = new UserProjects(user, project);
-        booking.setUserProject(userProjects);
-        
-        // validate
-        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-        Set<ConstraintViolation<Booking>> validations = validator.validate(booking);
-        assertThat(validations.size(), is(1));
+        Project project = new Project("theOne","blub");
+        // register user to project
+        UsersProjects userProject = new UsersProjects(user, project);
+        expectedException.expect(IllegalArgumentException.class);
+        expectedException.expectMessage("Start date must before end date.");
+        new Booking(userProject, new Date(5), new Date(4));
     }
 }

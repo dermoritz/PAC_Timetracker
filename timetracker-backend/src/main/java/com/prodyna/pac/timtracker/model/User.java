@@ -1,18 +1,16 @@
 package com.prodyna.pac.timtracker.model;
 
-import java.io.Serializable;
-import java.util.List;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.OneToMany;
 import javax.persistence.Version;
+
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+import com.prodyna.pac.timtracker.persistence.BaseEntity;
+import com.prodyna.pac.timtracker.persistence.Identifiable;
 
 /**
  * User of time tracking. Has unique name for identification/authentication.
@@ -21,7 +19,7 @@ import javax.persistence.Version;
  *
  */
 @Entity
-public class User implements Serializable {
+public class User extends BaseEntity implements Identifiable {
     /**
      * Default id.
      */
@@ -31,8 +29,6 @@ public class User implements Serializable {
      * internal id.
      */
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id", updatable = false, nullable = false)
     private Long id;
 
     /**
@@ -41,18 +37,38 @@ public class User implements Serializable {
     @Version
     @Column(name = "version")
     private int version;
-    
+
     /**
      * A user has a unique name.
      */
     @Column(unique = true)
     private String name;
-    
+
     /**
      * Role of this user.
      */
     @Enumerated(EnumType.STRING)
     private UserRole role;
+    
+    /**
+     * required by JPA.
+     */
+    User() {
+        
+    }
+    
+    /**
+     * 
+     * @param name unique user name
+     * @param role user's role
+     */
+    public User(final String name, final UserRole role) {
+        if (Strings.isNullOrEmpty(name)) {
+            throw new IllegalArgumentException("User name must neither null nor empty.");
+        }
+        this.name = name;
+        this.role = Preconditions.checkNotNull(role, "User's role must not be null");
+    }
 
     /**
      * 
@@ -61,28 +77,12 @@ public class User implements Serializable {
     public final Long getId() {
         return this.id;
     }
-    
+
     /**
      * @return the version
      */
     public final int getVersion() {
         return version;
-    }
-
-    /**
-     * @param version
-     *            the version to set
-     */
-    public final void setVersion(final int version) {
-        this.version = version;
-    }
-
-    /**
-     * @param id
-     *            the id to set
-     */
-    public final void setId(final Long id) {
-        this.id = id;
     }
 
     /**
@@ -92,33 +92,15 @@ public class User implements Serializable {
         return name;
     }
 
-    /**
-     * @param name
-     *            the name to set
-     */
-    public final void setName(final String name) {
-        this.name = name;
-    }
-
-    /**
-     * @return hash code using id, name and version
-     */
     @Override
     public final int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((id == null) ? 0 : id.hashCode());
         result = prime * result + ((name == null) ? 0 : name.hashCode());
-        result = prime * result + version;
+        result = prime * result + ((role == null) ? 0 : role.hashCode());
         return result;
     }
 
-    /**
-     * 
-     * @param obj
-     *            object to be compared
-     * @return if true id, name and version are equal. false otherwise.
-     */
     @Override
     public final boolean equals(final Object obj) {
         if (this == obj) {
@@ -127,17 +109,10 @@ public class User implements Serializable {
         if (obj == null) {
             return false;
         }
-        if (getClass() != obj.getClass()) {
+        if (!(obj instanceof User)) {
             return false;
         }
         User other = (User) obj;
-        if (id == null) {
-            if (other.id != null) {
-                return false;
-            }
-        } else if (!id.equals(other.id)) {
-            return false;
-        }
         if (name == null) {
             if (other.name != null) {
                 return false;
@@ -145,7 +120,7 @@ public class User implements Serializable {
         } else if (!name.equals(other.name)) {
             return false;
         }
-        if (version != other.version) {
+        if (role != other.role) {
             return false;
         }
         return true;

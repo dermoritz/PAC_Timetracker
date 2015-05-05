@@ -2,12 +2,20 @@ package com.prodyna.pac.timtracker.model;
 
 import java.io.Serializable;
 
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
+import javax.persistence.EmbeddedId;
+
+import com.google.common.base.Preconditions;
+
 /**
- * Key formed by user project combination.
+ * Key formed by user / project combination.
+ * 
  * @author moritz
  *
  */
-public class UserProjectKey implements Serializable {
+@Embeddable
+public class UsersProjects implements Serializable {
     /**
      * default id.
      */
@@ -15,42 +23,43 @@ public class UserProjectKey implements Serializable {
     /**
      * user id.
      */
-    private Long user;
+    @Column
+    private User user;
     /**
      * project id.
      */
-    private Long project;
-    
+    @Column
+    private Project project;
+
     /**
-     * required.
+     * required as this is used as {@link EmbeddedId}.
      */
-    public UserProjectKey() {
-        
+    public UsersProjects() {
+
     }
     
     /**
      * 
-     * @param userId id of user
-     * @param projectId id of project
+     * @param user the user to be linked to a project
+     * @param project the linked project
      */
-    public UserProjectKey(final long userId, final long projectId){
-        user = userId;
-        project = projectId;
+    public UsersProjects(final User user, final Project project) {
+        this.user =  Preconditions.checkNotNull(user, "User must not be null.");
+        this.project = Preconditions.checkNotNull(project, "Project must not be null.");
+        
     }
-    
-    
-    
+
     /**
      * @return the user
      */
-    public final Long getUser() {
+    public final User getUser() {
         return user;
     }
 
     /**
      * @return the project
      */
-    public final Long getProject() {
+    public final Project getProject() {
         return project;
     }
 
@@ -74,7 +83,7 @@ public class UserProjectKey implements Serializable {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        UserProjectKey other = (UserProjectKey) obj;
+        UsersProjects other = (UsersProjects) obj;
         if (project == null) {
             if (other.project != null) {
                 return false;
@@ -91,7 +100,13 @@ public class UserProjectKey implements Serializable {
         }
         return true;
     }
-    
-    
-    
+
+    /**
+     * @return userId,projectId.
+     */
+    @Override
+    public final String toString() {
+        return user + "," + project;
+    }
+
 }
