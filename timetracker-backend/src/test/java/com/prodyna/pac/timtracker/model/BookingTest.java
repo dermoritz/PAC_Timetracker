@@ -32,6 +32,7 @@ import org.junit.runner.RunWith;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.prodyna.pac.timtracker.cdi.EntityManagerProducer;
+import com.prodyna.pac.timtracker.model.util.ArquillianContainer;
 
 @RunWith(Arquillian.class)
 @Transactional

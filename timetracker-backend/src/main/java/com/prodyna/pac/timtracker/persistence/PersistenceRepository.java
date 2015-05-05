@@ -22,6 +22,7 @@ public abstract class PersistenceRepository<T> implements Repository<T> {
      */
     private Class<T> type;
     
+    
     /**
      * 
      * @param type type of entity
@@ -31,24 +32,24 @@ public abstract class PersistenceRepository<T> implements Repository<T> {
     }
     
     @Override
-    public final Class<T> getType() {
+    public Class<T> getType() {
         return type;
     }
 
     @Override
-    public final T store(final T entity) {
+    public T store(final T entity) {
         T mergedEntity = merge(entity);
         em.persist(mergedEntity);
         return mergedEntity;
     }
 
     @Override
-    public final T get(final Object id) {
+    public T get(final Long id) {
         return em.find(type, id);
     }
     
     @Override
-    public final void remove(final T entity) {
+    public void remove(final T entity) {
         em.remove(merge(entity));
     }
 
@@ -61,4 +62,7 @@ public abstract class PersistenceRepository<T> implements Repository<T> {
         return em.merge(entity);
     }
     
+    public EntityManager getManager() {
+        return em;
+    }
 }

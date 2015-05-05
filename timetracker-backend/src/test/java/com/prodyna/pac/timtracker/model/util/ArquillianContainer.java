@@ -1,7 +1,8 @@
-package com.prodyna.pac.timtracker.model;
+package com.prodyna.pac.timtracker.model.util;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
+import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 
 /**
@@ -15,8 +16,10 @@ public abstract class ArquillianContainer {
      * Default container for all tests.
      */
     private static WebArchive container = ShrinkWrap.create(WebArchive.class, "test.war")
-                                                    .addAsResource("META-INF/persistence.xml")
-                                                    .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
+                                                    .addAsResource(new StringAsset(PersistenceConfiguration.persistenceDescriptor()
+                                                                                                           .exportAsString()),
+                                                                   "META-INF/persistence.xml")
+                                                    .addAsResource("META-INF/beans.xml")
                                                     .addClass(ArquillianContainer.class);
 
     /**

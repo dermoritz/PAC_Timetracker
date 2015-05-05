@@ -10,5 +10,5 @@ public interface Identifiable {
      * 
      * @return id of entity
      */
-    Object getId();
+    Long getId();
 }

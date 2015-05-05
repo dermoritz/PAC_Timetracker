@@ -12,6 +12,7 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Version;
 import javax.validation.constraints.AssertTrue;
+import javax.validation.constraints.Max;
 import javax.validation.constraints.NotNull;
 
 import com.google.common.base.Preconditions;
@@ -26,7 +27,7 @@ import com.prodyna.pac.timtracker.persistence.Identifiable;
  *
  */
 @Entity
-public class Booking extends BaseEntity implements Identifiable {
+public class Booking extends BaseEntity {
 
     /**
      * Validation message if end is before start.
@@ -36,11 +37,6 @@ public class Booking extends BaseEntity implements Identifiable {
      * default.
      */
     private static final long serialVersionUID = 1L;
-    /**
-     * internal id.
-     */
-    @Id
-    private Long id;
 
     /**
      * Used for optimistic locking.
@@ -52,7 +48,6 @@ public class Booking extends BaseEntity implements Identifiable {
     /**
      * Link to user and project.
      */
-    @ManyToOne
     @NotNull
     @Embedded
     private UsersProjects userProject;
@@ -112,14 +107,6 @@ public class Booking extends BaseEntity implements Identifiable {
      */
     public final UsersProjects getUserProject() {
         return userProject;
-    }
-
-    /**
-     * @return the id
-     */
-    @Override
-    public final Long getId() {
-        return id;
     }
 
     /**

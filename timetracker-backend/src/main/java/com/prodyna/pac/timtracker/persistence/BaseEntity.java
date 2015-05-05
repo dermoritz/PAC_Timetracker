@@ -3,6 +3,9 @@ package com.prodyna.pac.timtracker.persistence;
 import java.io.Serializable;
 import java.util.Date;
 
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.PrePersist;
 import javax.persistence.PreUpdate;
@@ -16,13 +19,17 @@ import javax.persistence.TemporalType;
  *
  */
 @MappedSuperclass
-public abstract class BaseEntity implements Timestampable, Serializable {
+public abstract class BaseEntity implements Timestampable, Serializable, Identifiable {
     
     /**
      * default.
      */
     private static final long serialVersionUID = 1L;
-
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
+    
     /**
      * Creation date of entity.
      */
@@ -53,6 +60,13 @@ public abstract class BaseEntity implements Timestampable, Serializable {
         return getLastUpdated() == null ? getCreated() : getLastUpdated();
     }
     
+    
+    
+    @Override
+    public Long getId() {
+        return id;
+    }
+
     /**
      * Called before perist to set creation date.
      */

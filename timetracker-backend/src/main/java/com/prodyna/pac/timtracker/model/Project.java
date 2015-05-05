@@ -24,12 +24,6 @@ public class Project extends BaseEntity implements Identifiable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * internal id.
-     */
-    @Id
-    private Long id;
-
-    /**
      * Used for optimistic locking.
      */
     @Version
@@ -70,13 +64,6 @@ public class Project extends BaseEntity implements Identifiable {
         this.description = description;
     }
 
-    /**
-     * @return the id
-     */
-    @Override
-    public final Long getId() {
-        return id;
-    }
 
     /**
      * @return the version

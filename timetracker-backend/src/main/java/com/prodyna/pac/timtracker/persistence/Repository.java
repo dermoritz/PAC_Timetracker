@@ -31,11 +31,13 @@ public interface Repository<T> {
      *            internal id
      * @return entity
      */
-    T get(Object id);
+    T get(Long id);
     
     /**
      * Removes given entity.
      * @param entity to be removed
      */
     void remove(T entity);
+
+    
 }

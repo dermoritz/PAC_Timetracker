@@ -26,12 +26,6 @@ public class User extends BaseEntity implements Identifiable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * internal id.
-     */
-    @Id
-    private Long id;
-
-    /**
      * version for optimistic locking.
      */
     @Version
@@ -68,14 +62,6 @@ public class User extends BaseEntity implements Identifiable {
         }
         this.name = name;
         this.role = Preconditions.checkNotNull(role, "User's role must not be null");
-    }
-
-    /**
-     * 
-     * @return id
-     */
-    public final Long getId() {
-        return this.id;
     }
 
     /**
