@@ -1,52 +1,62 @@
 package com.prodyna.pac.timtracker.model;
 
-import java.io.Serializable;
-
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
+import javax.persistence.CascadeType;
 import javax.persistence.EmbeddedId;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 import com.google.common.base.Preconditions;
+import com.prodyna.pac.timtracker.persistence.BaseEntity;
 
 /**
- * Key formed by user / project combination.
+ * Stores registered projects per user.
  * 
  * @author moritz
  *
  */
-@Embeddable
-public class UsersProjects implements Serializable {
+@Entity
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"user", "project"}))
+public class UsersProjects extends BaseEntity {
     /**
      * default id.
      */
     private static final long serialVersionUID = 1L;
+    
     /**
      * user id.
      */
-    @Column
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "user")
     private User user;
+    
     /**
      * project id.
      */
-    @Column
+    @ManyToOne(cascade = CascadeType.PERSIST)
+    @JoinColumn(name = "project")
     private Project project;
 
     /**
      * required as this is used as {@link EmbeddedId}.
      */
-    public UsersProjects() {
+    UsersProjects() {
 
     }
-    
+
     /**
      * 
-     * @param user the user to be linked to a project
-     * @param project the linked project
+     * @param user
+     *            the user to be linked to a project
+     * @param project
+     *            the linked project
      */
     public UsersProjects(final User user, final Project project) {
-        this.user =  Preconditions.checkNotNull(user, "User must not be null.");
+        this.user = Preconditions.checkNotNull(user, "User must not be null.");
         this.project = Preconditions.checkNotNull(project, "Project must not be null.");
-        
+
     }
 
     /**

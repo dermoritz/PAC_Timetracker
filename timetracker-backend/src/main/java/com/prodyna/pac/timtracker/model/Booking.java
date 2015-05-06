@@ -3,6 +3,7 @@ package com.prodyna.pac.timtracker.model;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import javax.naming.spi.DirStateFactory.Result;
 import javax.persistence.Column;
 import javax.persistence.Embedded;
 import javax.persistence.Entity;
@@ -49,7 +50,6 @@ public class Booking extends BaseEntity {
      * Link to user and project.
      */
     @NotNull
-    @Embedded
     private UsersProjects userProject;
 
     /**
@@ -72,24 +72,20 @@ public class Booking extends BaseEntity {
     Booking() {
 
     }
-    
+
     /**
      * 
-     * @param userProject links this to user and project
-     * @param start start time
-     * @param end end time
+     * @param userProject
+     *            links this to user and project
+     * @param start
+     *            start time
+     * @param end
+     *            end time
      */
     public Booking(final UsersProjects userProject, final Date start, final Date end) {
         this.userProject = Preconditions.checkNotNull(userProject, "userProject must not be null.");
-        this.start = Preconditions.checkNotNull(start, "Start date must not be null.");
-        this.end = Preconditions.checkNotNull(end, "End date must not be null.");
-        if (end.compareTo(start) < 0) {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            String startString = dateFormat.format(start);
-            String endString = dateFormat.format(end);
-            throw new IllegalArgumentException("Start date must before end date. Given start: " + startString
-                                               + " given end: " + endString);
-        }
+        setStart(start);
+        setEnd(end);
     }
 
     /**
@@ -99,7 +95,11 @@ public class Booking extends BaseEntity {
      */
     @AssertTrue(message = START_MUST_BEFORE_END)
     public final boolean isStartBeforeEnd() {
-        return start.compareTo(end) < 0;
+        boolean result = false;
+        if (start != null && end != null) {
+            result = start.compareTo(end) < 0;
+        }
+        return result;
     }
 
     /**
@@ -144,7 +144,41 @@ public class Booking extends BaseEntity {
         return end;
     }
 
- 
+    /**
+     * @param start
+     *            the start to set
+     */
+    public final void setStart(Date start) {
+        Preconditions.checkNotNull(start, "Start date must not be null");
+        if (end != null) {
+            if (end.compareTo(start) < 0) {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                String startString = dateFormat.format(start);
+                String endString = dateFormat.format(end);
+                throw new IllegalArgumentException("Start date must before end date. Given start: " + startString
+                                                   + " given end: " + endString);
+            }
+        }
+        this.start = start;
+    }
+
+    /**
+     * @param end
+     *            the end to set
+     */
+    public final void setEnd(Date end) {
+        Preconditions.checkNotNull(end, "End date must not be null.");
+        if (start != null) {
+            if (end.compareTo(start) < 0) {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                String startString = dateFormat.format(start);
+                String endString = dateFormat.format(end);
+                throw new IllegalArgumentException("Start date must before end date. Given start: " + startString
+                                                   + " given end: " + endString);
+            }
+        }
+        this.end = end;
+    }
 
     @Override
     public final int hashCode() {

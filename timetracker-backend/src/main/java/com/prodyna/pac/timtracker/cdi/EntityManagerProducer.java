@@ -4,6 +4,11 @@ import javax.enterprise.inject.Produces;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
+/**
+ * Producer of {@link EntityManager}.
+ * @author moritz löser (moritz.loeser@prodyna.com)
+ *
+ */
 public class EntityManagerProducer {
 
     @Produces

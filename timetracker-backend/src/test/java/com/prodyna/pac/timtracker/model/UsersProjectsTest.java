@@ -1,23 +1,17 @@
 package com.prodyna.pac.timtracker.model;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
-import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertTrue;
 
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-import javax.validation.constraints.AssertFalse;
 
-import org.hamcrest.core.Is;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.jboss.shrinkwrap.descriptor.api.webapp25.NullCharType;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,30 +30,32 @@ import com.prodyna.pac.timtracker.persistence.PersistenceRepository;
 import com.prodyna.pac.timtracker.persistence.Removed;
 import com.prodyna.pac.timtracker.persistence.Repository;
 import com.prodyna.pac.timtracker.persistence.Timestampable;
-import com.prodyna.pac.timtracker.persistence.UserCdiDelegatorRepository;
+import com.prodyna.pac.timtracker.persistence.UsersProjectsCdiDelegatorRepository;
 
 /**
+ * Tests jpa interactions for {@link UsersProjects} via {@link Repository}.
  * 
  * @author moritz löser (moritz.loeser@prodyna.com)
  *
  */
 @Transactional(TransactionMode.COMMIT)
 @RunWith(Arquillian.class)
-public class UserTest {
-
+public class UsersProjectsTest {
     @Deployment
     public static WebArchive createDeployment() {
-        return ArquillianContainer.addClasses(User.class,
+        return ArquillianContainer.addClasses(Project.class,
+                                              User.class,
+                                              UsersProjects.class,
                                               UserRole.class,
                                               Repository.class,
                                               PersistenceRepository.class,
                                               Identifiable.class,
                                               BaseEntity.class,
                                               Timestampable.class,
-                                              UserRepository.class,
+                                              UsersProjectsRepository.class,
                                               Strings.class,
                                               Preconditions.class,
-                                              UserCdiDelegatorRepository.class,
+                                              UsersProjectsCdiDelegatorRepository.class,
                                               EventRepositoryDecorator.class,
                                               Created.class,
                                               Removed.class,
@@ -70,130 +66,79 @@ public class UserTest {
      * JPA interactions will be conducted on this abstract {@link Repository}.
      */
     @Inject
-    private Repository<User> repository;
+    private Repository<UsersProjects> repository;
 
     // these fields are static because Events observed by this TestClass
     // are not observed on the same TestClass instance as @Test is running.
     private static boolean createdFired = false;
     private static boolean removedFired = false;
-    
+
     /**
-     * Observes created events and set  the flag.
+     * Observes created events and set the flag.
      * 
-     * @param user
+     * @param project
      */
-    public static void createdEventFired(@Observes @Created User user) {
+    public static void createdEventFired(@Observes @Created UsersProjects up) {
         createdFired = true;
     }
-    
+
     /**
      * Observes removed event and sets a flag.
      * 
      * @param user
      */
-    public static void removedEventFired(@Observes @Removed User user) {
+    public static void removedEventFired(@Observes @Removed UsersProjects up) {
         removedFired = true;
     }
-    
-    /**
-     * Resets flags before each test.
-     */
+
     @Before
-    public void before(){
+    public void resetFlags() {
         createdFired = false;
         removedFired = false;
     }
     
     /**
-     * Tests creation and peristing a user.
+     * Tests creation and removal of {@link UsersProjects}.
      */
     @Test
-    public void createUser() {
-        User user = new User("klaus", UserRole.USER);
-        User storedUser = repository.store(user);
-        assertTrue(createdFired);
-        assertNotNull(storedUser.getId());
-    }
-    
-    /**
-     * Tests removal of a user.
-     */
-    @Test
-    public void removeUser() {
-        User user = repository.store(new User("peter", UserRole.MANAGER));
-        Long id = user.getId();
+    public void createRemove() {
+        //create
+        UsersProjects usersProjects = new UsersProjects(new User("Peter", UserRole.USER), new Project("p1", "d of p1"));
+        UsersProjects storedUsersProjects = repository.store(usersProjects);
+        Long id = storedUsersProjects.getId();
         assertNotNull(id);
-        repository.remove(user);
-        assertTrue(removedFired);
-        User fetchedUser = repository.get(id);
-        assertNull(fetchedUser);
+        UsersProjects fetchedUsersProjects = repository.get(id);
+        Long projectId = fetchedUsersProjects.getProject().getId();
+        Long userId = fetchedUsersProjects.getUser().getId();
+        //should work due to cascaded persist
+        assertNotNull(projectId);
+        assertNotNull(userId);
+        //remove USersProject
+        repository.remove(storedUsersProjects);
+        assertNull(repository.get(id));
+        //since removal is not cascaded user and project should still exist
+        assertNotNull(projectId);
+        assertNotNull(userId);        
     }
     
-    /**
-     * Checks setting role.
-     */
-    @Test
-    public void setRole(){
-        User user = repository.store(new User("sübülle", UserRole.MANAGER));
-        Long id = user.getId();
-        assertNotNull(id);
-        User fetchedUser = repository.get(id);
-        assertThat(fetchedUser.getRole(), is(UserRole.MANAGER));
-        fetchedUser.setRole(UserRole.USER);
-        assertThat(fetchedUser.getRole(), is(UserRole.USER));
-    }
-    
-    /**
-     * to check exceptions.
-     */
     @Rule
     public ExpectedException thrown = ExpectedException.none();
     
     /**
-     * Tests if exception is thrown if 2 users with same name are stored.
+     * Checks exception for null user.
      */
     @Test
-    public void createNameClash(){
-        thrown.expect(RuntimeException.class);
-        thrown.expectMessage("Unable to commit the transaction.");
-        String name = "OJ";
-        User user1 = new User(name, UserRole.USER);
-        User user2 = new User(name, UserRole.MANAGER);
-        repository.store(user1);
-        repository.store(user2);
-    }
-    
-    /**
-     * Checks exception thrown if role is null in constructor.
-     */
-    @Test
-    public void createWithNullRole() {
+    public void checkNullUser() {
         thrown.expect(NullPointerException.class);
-        thrown.expectMessage("Role");
-        new User("blub", null);
+        new UsersProjects(null, new Project("p8", ""));
     }
     
     /**
-     * Checks exception if null role is set via setter.
+     * Checks exception for null project.
      */
     @Test
-    public void setNullRole() {
-        User user = new User("p", UserRole.USER);
+    public void checkNullProject() {
         thrown.expect(NullPointerException.class);
-        thrown.expectMessage("Role");
-        user.setRole(null);
-    }
-    
-    /**
-     * Checks exception on null/empty name. 
-     */
-    @Test
-    public void nullOrEmptyName() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("name");
-        new User("", UserRole.MANAGER);
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("name");
-        new User(null, UserRole.ADMIN);
+        new UsersProjects(new User("blub", UserRole.USER), null);
     }
 }

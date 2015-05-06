@@ -1,7 +1,7 @@
 package com.prodyna.pac.timtracker.persistence;
 
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 
 /**
  * Abstract implementation of {@link Repository} using JPA.
@@ -14,7 +14,7 @@ public abstract class PersistenceRepository<T> implements Repository<T> {
     /**
      * Entity manager - provides JPA.
      */
-    @PersistenceContext
+    @Inject
     private EntityManager em;
     
     /**
@@ -60,9 +60,5 @@ public abstract class PersistenceRepository<T> implements Repository<T> {
      */
     private T merge(final T entity) {
         return em.merge(entity);
-    }
-    
-    public EntityManager getManager() {
-        return em;
     }
 }

@@ -19,7 +19,7 @@ import com.prodyna.pac.timtracker.persistence.Identifiable;
  *
  */
 @Entity
-public class User extends BaseEntity implements Identifiable {
+public class User extends BaseEntity {
     /**
      * Default id.
      */
@@ -61,7 +61,7 @@ public class User extends BaseEntity implements Identifiable {
             throw new IllegalArgumentException("User name must neither null nor empty.");
         }
         this.name = name;
-        this.role = Preconditions.checkNotNull(role, "User's role must not be null");
+        setRole(role);
     }
 
     /**
@@ -76,6 +76,21 @@ public class User extends BaseEntity implements Identifiable {
      */
     public final String getName() {
         return name;
+    }
+    
+    
+    /**
+     * @return the role
+     */
+    public final UserRole getRole() {
+        return role;
+    }
+
+    /**
+     * @param role the role to set
+     */
+    public final void setRole(UserRole role) {
+        this.role = Preconditions.checkNotNull(role, "Role must not be null.");
     }
 
     @Override

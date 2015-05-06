@@ -2,12 +2,10 @@ package com.prodyna.pac.timtracker.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.Id;
 import javax.persistence.Version;
 
 import com.google.common.base.Strings;
 import com.prodyna.pac.timtracker.persistence.BaseEntity;
-import com.prodyna.pac.timtracker.persistence.Identifiable;
 
 /**
  * A project could be linked by many {@link Booking}.
@@ -16,7 +14,7 @@ import com.prodyna.pac.timtracker.persistence.Identifiable;
  *
  */
 @Entity
-public class Project extends BaseEntity implements Identifiable {
+public class Project extends BaseEntity {
 
     /**
      * default.
@@ -61,7 +59,7 @@ public class Project extends BaseEntity implements Identifiable {
             throw new IllegalArgumentException("Name must not be null or empty.");
         }
         this.name = name;
-        this.description = description;
+        setDescription(description);
     }
 
 
@@ -86,7 +84,12 @@ public class Project extends BaseEntity implements Identifiable {
         return description;
     }
 
-
+    /**
+     * @param description the description to set
+     */
+    public final void setDescription(String description) {
+        this.description = description;
+    }
 
     @Override
     public int hashCode() {

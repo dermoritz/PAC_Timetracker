@@ -1,23 +1,19 @@
 package com.prodyna.pac.timtracker.model;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.hamcrest.core.Is.is;
 
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-import javax.validation.constraints.AssertFalse;
 
-import org.hamcrest.core.Is;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import org.jboss.shrinkwrap.descriptor.api.webapp25.NullCharType;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,44 +29,39 @@ import com.prodyna.pac.timtracker.persistence.Created;
 import com.prodyna.pac.timtracker.persistence.EventRepositoryDecorator;
 import com.prodyna.pac.timtracker.persistence.Identifiable;
 import com.prodyna.pac.timtracker.persistence.PersistenceRepository;
+import com.prodyna.pac.timtracker.persistence.ProjectCdiDelegatorRepository;
 import com.prodyna.pac.timtracker.persistence.Removed;
 import com.prodyna.pac.timtracker.persistence.Repository;
 import com.prodyna.pac.timtracker.persistence.Timestampable;
-import com.prodyna.pac.timtracker.persistence.UserCdiDelegatorRepository;
 
-/**
- * 
- * @author moritz löser (moritz.loeser@prodyna.com)
- *
- */
 @Transactional(TransactionMode.COMMIT)
 @RunWith(Arquillian.class)
-public class UserTest {
+public class ProjectTest {
 
+    
     @Deployment
     public static WebArchive createDeployment() {
-        return ArquillianContainer.addClasses(User.class,
-                                              UserRole.class,
+        return ArquillianContainer.addClasses(Project.class,
                                               Repository.class,
                                               PersistenceRepository.class,
                                               Identifiable.class,
                                               BaseEntity.class,
                                               Timestampable.class,
-                                              UserRepository.class,
+                                              ProjectRepository.class,
                                               Strings.class,
                                               Preconditions.class,
-                                              UserCdiDelegatorRepository.class,
+                                              ProjectCdiDelegatorRepository.class,
                                               EventRepositoryDecorator.class,
                                               Created.class,
                                               Removed.class,
                                               EntityManagerProducer.class);
     }
-
+    
     /**
      * JPA interactions will be conducted on this abstract {@link Repository}.
      */
     @Inject
-    private Repository<User> repository;
+    private Repository<Project> repository;
 
     // these fields are static because Events observed by this TestClass
     // are not observed on the same TestClass instance as @Test is running.
@@ -80,9 +71,9 @@ public class UserTest {
     /**
      * Observes created events and set  the flag.
      * 
-     * @param user
+     * @param project
      */
-    public static void createdEventFired(@Observes @Created User user) {
+    public static void createdEventFired(@Observes @Created Project project) {
         createdFired = true;
     }
     
@@ -91,109 +82,80 @@ public class UserTest {
      * 
      * @param user
      */
-    public static void removedEventFired(@Observes @Removed User user) {
+    public static void removedEventFired(@Observes @Removed Project project) {
         removedFired = true;
     }
     
-    /**
-     * Resets flags before each test.
-     */
     @Before
-    public void before(){
+    public void resetFlags(){
         createdFired = false;
         removedFired = false;
     }
     
     /**
-     * Tests creation and peristing a user.
+     * Tests store and removal of projects.
      */
     @Test
-    public void createUser() {
-        User user = new User("klaus", UserRole.USER);
-        User storedUser = repository.store(user);
+    public void storeAndRemoveProject() {
+        Project storedProject = repository.store(new Project("p1", "p1's description"));
         assertTrue(createdFired);
-        assertNotNull(storedUser.getId());
-    }
-    
-    /**
-     * Tests removal of a user.
-     */
-    @Test
-    public void removeUser() {
-        User user = repository.store(new User("peter", UserRole.MANAGER));
-        Long id = user.getId();
+        Long id = storedProject.getId();
         assertNotNull(id);
-        repository.remove(user);
+        Project fetchedProject = repository.get(id);
+        assertNotNull(fetchedProject);
+        repository.remove(fetchedProject);
         assertTrue(removedFired);
-        User fetchedUser = repository.get(id);
-        assertNull(fetchedUser);
+        assertNull(repository.get(id));
     }
     
     /**
-     * Checks setting role.
+     * Tests setter for description.
      */
     @Test
-    public void setRole(){
-        User user = repository.store(new User("sübülle", UserRole.MANAGER));
-        Long id = user.getId();
+    public void setDescription() {
+        Project storedProject = repository.store(new Project("p2", "p2"));
+        Long id = storedProject.getId();
         assertNotNull(id);
-        User fetchedUser = repository.get(id);
-        assertThat(fetchedUser.getRole(), is(UserRole.MANAGER));
-        fetchedUser.setRole(UserRole.USER);
-        assertThat(fetchedUser.getRole(), is(UserRole.USER));
+        String newDescription = "blubber";
+        storedProject.setDescription(newDescription);
+        assertThat(storedProject.getDescription(), is(newDescription));
     }
     
     /**
-     * to check exceptions.
+     * Rule to check exceptions.
      */
     @Rule
     public ExpectedException thrown = ExpectedException.none();
     
     /**
-     * Tests if exception is thrown if 2 users with same name are stored.
+     * Checks exception for empty name;
      */
     @Test
-    public void createNameClash(){
+    public void emptyName(){
+        thrown.expect(IllegalArgumentException.class);
+        new Project("","");
+    }
+        
+    /**
+     * Checks exception for null name.
+     */
+    @Test
+    public void nullName(){
+        thrown.expect(IllegalArgumentException.class);
+        new Project(null,"");
+    }
+    
+    /**
+     * Checks exception on storing 2 projects with same name.
+     */
+    @Test
+    public void duplicateName() {
         thrown.expect(RuntimeException.class);
         thrown.expectMessage("Unable to commit the transaction.");
-        String name = "OJ";
-        User user1 = new User(name, UserRole.USER);
-        User user2 = new User(name, UserRole.MANAGER);
-        repository.store(user1);
-        repository.store(user2);
-    }
-    
-    /**
-     * Checks exception thrown if role is null in constructor.
-     */
-    @Test
-    public void createWithNullRole() {
-        thrown.expect(NullPointerException.class);
-        thrown.expectMessage("Role");
-        new User("blub", null);
-    }
-    
-    /**
-     * Checks exception if null role is set via setter.
-     */
-    @Test
-    public void setNullRole() {
-        User user = new User("p", UserRole.USER);
-        thrown.expect(NullPointerException.class);
-        thrown.expectMessage("Role");
-        user.setRole(null);
-    }
-    
-    /**
-     * Checks exception on null/empty name. 
-     */
-    @Test
-    public void nullOrEmptyName() {
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("name");
-        new User("", UserRole.MANAGER);
-        thrown.expect(IllegalArgumentException.class);
-        thrown.expectMessage("name");
-        new User(null, UserRole.ADMIN);
+        String name = "name";
+        Project p1 = new Project(name, "");
+        Project p2 = new Project(name, "p2");
+        repository.store(p1);
+        repository.store(p2);
     }
 }
