@@ -1,10 +1,13 @@
 package com.prodyna.pac.timtracker.model;
 
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.hamcrest.core.Is.is;
+
+import java.util.Date;
 
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
@@ -25,137 +28,158 @@ import com.google.common.base.Strings;
 import com.prodyna.pac.timtracker.cdi.EntityManagerProducer;
 import com.prodyna.pac.timtracker.model.util.PersistenceArquillianContainer;
 import com.prodyna.pac.timtracker.persistence.BaseEntity;
+import com.prodyna.pac.timtracker.persistence.BookingCdiDelegatorRepository;
 import com.prodyna.pac.timtracker.persistence.Created;
 import com.prodyna.pac.timtracker.persistence.EventRepositoryDecorator;
 import com.prodyna.pac.timtracker.persistence.Identifiable;
 import com.prodyna.pac.timtracker.persistence.PersistenceRepository;
-import com.prodyna.pac.timtracker.persistence.ProjectCdiDelegatorRepository;
 import com.prodyna.pac.timtracker.persistence.Removed;
 import com.prodyna.pac.timtracker.persistence.Repository;
 import com.prodyna.pac.timtracker.persistence.Timestampable;
+import com.prodyna.pac.timtracker.persistence.UsersProjectsCdiDelegatorRepository;
 
+/**
+ * 
+ * @author moritz löser (moritz.loeser@prodyna.com)
+ *
+ */
 @Transactional(TransactionMode.COMMIT)
 @RunWith(Arquillian.class)
-public class ProjectTest {
+public class BookingTest {
 
-    
     @Deployment
     public static WebArchive createDeployment() {
         return PersistenceArquillianContainer.addClasses(Project.class,
+                                              User.class,
+                                              UsersProjects.class,
+                                              Booking.class,
+                                              UserRole.class,
+                                              BookingRepository.class,
+                                              BookingCdiDelegatorRepository.class,
+                                              UsersProjectsRepository.class,
+                                              UsersProjectsCdiDelegatorRepository.class,
                                               Repository.class,
                                               PersistenceRepository.class,
                                               Identifiable.class,
                                               BaseEntity.class,
                                               Timestampable.class,
-                                              ProjectRepository.class,
                                               Strings.class,
                                               Preconditions.class,
-                                              ProjectCdiDelegatorRepository.class,
                                               EventRepositoryDecorator.class,
                                               Created.class,
                                               Removed.class,
                                               EntityManagerProducer.class);
     }
-    
+
     /**
      * JPA interactions will be conducted on this abstract {@link Repository}.
      */
     @Inject
-    private Repository<Project> repository;
+    private Repository<Booking> repository;
+
+    @Inject
+    private Repository<UsersProjects> upRepository;
 
     // these fields are static because Events observed by this TestClass
     // are not observed on the same TestClass instance as @Test is running.
     private static boolean createdFired = false;
     private static boolean removedFired = false;
-    
+
     /**
-     * Observes created events and set  the flag.
+     * Observes created events and set the flag.
      * 
      * @param project
      */
-    public static void createdEventFired(@Observes @Created Project project) {
+    public static void createdEventFired(@Observes @Created Booking booking) {
         createdFired = true;
     }
-    
+
     /**
      * Observes removed event and sets a flag.
      * 
      * @param user
      */
-    public static void removedEventFired(@Observes @Removed Project project) {
+    public static void removedEventFired(@Observes @Removed Booking booking) {
         removedFired = true;
     }
-    
+
     @Before
-    public void resetFlags(){
+    public void resetFlags() {
         createdFired = false;
         removedFired = false;
     }
-    
+
     /**
-     * Tests store and removal of projects.
+     * Creates and removes a booking.
      */
     @Test
-    public void storeAndRemoveProject() {
-        Project storedProject = repository.store(new Project("p1", "p1's description"));
+    public void createRemove() {
+        // register a user to a project
+        UsersProjects storedUp = createUp();
+        // typed Booking event should not be fired
+        assertFalse(createdFired);
+        Booking storedBooking = repository.store(new Booking(storedUp, new Date(0), new Date(2)));
+        assertNotNull(storedBooking.getId());
         assertTrue(createdFired);
-        Long id = storedProject.getId();
-        assertNotNull(id);
-        Project fetchedProject = repository.get(id);
-        assertNotNull(fetchedProject);
-        repository.remove(fetchedProject);
+        repository.remove(storedBooking);
         assertTrue(removedFired);
-        assertNull(repository.get(id));
+        assertNull(repository.get(storedBooking.getId()));
     }
-    
+
     /**
-     * Tests setter for description.
+     * Test setters for start and end date.
      */
     @Test
-    public void setDescription() {
-        Project storedProject = repository.store(new Project("p2", "p2"));
-        Long id = storedProject.getId();
-        assertNotNull(id);
-        String newDescription = "blubber";
-        storedProject.setDescription(newDescription);
-        assertThat(storedProject.getDescription(), is(newDescription));
+    public void changeStartEnd() {
+        // register a user to a project
+        UsersProjects storedUp = createUp();
+        Booking storedBooking = repository.store(new Booking(storedUp, new Date(0), new Date(2)));
+        assertNotNull(storedBooking.getId());
+        Date newEnd = new Date(3);
+        Date newStart = new Date(1);
+        storedBooking.setEnd(newEnd);
+        storedBooking.setStart(newStart);
+        assertThat(storedBooking.getEnd(), is(newEnd));
     }
-    
+
     /**
      * Rule to check exceptions.
      */
     @Rule
     public ExpectedException thrown = ExpectedException.none();
-    
+
     /**
-     * Checks exception for empty name;
+     * It should not be possible to create a booking with a
+     * {@link UsersProjects} that is not persisted yet - the user is not
+     * registered to project yet.
      */
     @Test
-    public void emptyName(){
+    public void notStoredUserProject() {
         thrown.expect(IllegalArgumentException.class);
-        new Project("","");
+        thrown.expectMessage("id");
+        UsersProjects usersProjects = new UsersProjects(new User("klaus", UserRole.USER), new Project("p1", "p1 d"));
+        new Booking(usersProjects, new Date(0), new Date(1));
     }
-        
+
     /**
-     * Checks exception for null name.
+     * It should not be possible to create {@link Booking} with an end dtae
+     * before start date.
      */
     @Test
-    public void nullName(){
+    public void endBeforeStart() {
         thrown.expect(IllegalArgumentException.class);
-        new Project(null,"");
+        thrown.expectMessage("must before");
+        new Booking(createUp(), new Date(3), new Date(2));
     }
-    
+
     /**
-     * Checks exception on storing 2 projects with same name.
+     * Creates and persists a {@link UsersProjects}. It is needed to create a
+     * {@link Booking}.
+     * 
+     * @return
      */
-    @Test
-    public void duplicateName() {
-        thrown.expect(RuntimeException.class);
-        thrown.expectMessage("Unable to commit the transaction.");
-        String name = "name";
-        Project p1 = new Project(name, "");
-        Project p2 = new Project(name, "p2");
-        repository.store(p1);
-        repository.store(p2);
+    private UsersProjects createUp() {
+        return upRepository.store(new UsersProjects(new User("klaus", UserRole.USER),
+                                                    new Project("p1", "p1 d")));
     }
 }

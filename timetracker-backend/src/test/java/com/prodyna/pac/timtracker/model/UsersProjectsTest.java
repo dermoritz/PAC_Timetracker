@@ -21,7 +21,7 @@ import org.junit.runner.RunWith;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.prodyna.pac.timtracker.cdi.EntityManagerProducer;
-import com.prodyna.pac.timtracker.model.util.ArquillianContainer;
+import com.prodyna.pac.timtracker.model.util.PersistenceArquillianContainer;
 import com.prodyna.pac.timtracker.persistence.BaseEntity;
 import com.prodyna.pac.timtracker.persistence.Created;
 import com.prodyna.pac.timtracker.persistence.EventRepositoryDecorator;
@@ -43,7 +43,7 @@ import com.prodyna.pac.timtracker.persistence.UsersProjectsCdiDelegatorRepositor
 public class UsersProjectsTest {
     @Deployment
     public static WebArchive createDeployment() {
-        return ArquillianContainer.addClasses(Project.class,
+        return PersistenceArquillianContainer.addClasses(Project.class,
                                               User.class,
                                               UsersProjects.class,
                                               UserRole.class,
@@ -118,7 +118,9 @@ public class UsersProjectsTest {
         assertNull(repository.get(id));
         //since removal is not cascaded user and project should still exist
         assertNotNull(projectId);
-        assertNotNull(userId);        
+        assertNotNull(userId);   
+        assertTrue(createdFired);
+        assertTrue(removedFired);
     }
     
     @Rule

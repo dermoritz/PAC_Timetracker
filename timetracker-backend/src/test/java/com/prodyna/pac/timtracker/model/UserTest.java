@@ -27,7 +27,7 @@ import org.junit.runner.RunWith;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.prodyna.pac.timtracker.cdi.EntityManagerProducer;
-import com.prodyna.pac.timtracker.model.util.ArquillianContainer;
+import com.prodyna.pac.timtracker.model.util.PersistenceArquillianContainer;
 import com.prodyna.pac.timtracker.persistence.BaseEntity;
 import com.prodyna.pac.timtracker.persistence.Created;
 import com.prodyna.pac.timtracker.persistence.EventRepositoryDecorator;
@@ -49,7 +49,7 @@ public class UserTest {
 
     @Deployment
     public static WebArchive createDeployment() {
-        return ArquillianContainer.addClasses(User.class,
+        return PersistenceArquillianContainer.addClasses(User.class,
                                               UserRole.class,
                                               Repository.class,
                                               PersistenceRepository.class,

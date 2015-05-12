@@ -10,5 +10,5 @@ import javax.ws.rs.core.Application;
  */
 @ApplicationPath("timetracker")
 public class TimetrackerWebApp extends Application {
-
+    //marker class to signal use of jax rs
 }

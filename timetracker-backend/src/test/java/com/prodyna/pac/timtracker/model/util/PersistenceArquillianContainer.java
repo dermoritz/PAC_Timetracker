@@ -10,7 +10,7 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
  * @author moritz löser (moritz.loeser@prodyna.com)
  *
  */
-public abstract class ArquillianContainer {
+public abstract class PersistenceArquillianContainer {
     /**
      * Default container for all tests.
      */
@@ -19,7 +19,7 @@ public abstract class ArquillianContainer {
                                                                                                            .exportAsString()),
                                                                    "META-INF/persistence.xml")
                                                     .addAsResource("META-INF/beans.xml")
-                                                    .addClass(ArquillianContainer.class);
+                                                    .addClass(PersistenceArquillianContainer.class);
 
     /**
      * Adds classes to default container.
@@ -30,5 +30,13 @@ public abstract class ArquillianContainer {
      */
     public static WebArchive addClasses(final Class<?>... classes) {
         return container.addClasses(classes);
+    }
+    
+    /**
+     * 
+     * @return container
+     */
+    public static WebArchive get(){
+        return container;
     }
 }

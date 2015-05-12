@@ -3,22 +3,17 @@ package com.prodyna.pac.timtracker.model;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import javax.naming.spi.DirStateFactory.Result;
 import javax.persistence.Column;
-import javax.persistence.Embedded;
 import javax.persistence.Entity;
-import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.persistence.Version;
 import javax.validation.constraints.AssertTrue;
-import javax.validation.constraints.Max;
 import javax.validation.constraints.NotNull;
 
 import com.google.common.base.Preconditions;
 import com.prodyna.pac.timtracker.persistence.BaseEntity;
-import com.prodyna.pac.timtracker.persistence.Identifiable;
 
 /**
  * A booking has disjoint start and end time an owner ( {@link User} ) and a
@@ -50,6 +45,7 @@ public class Booking extends BaseEntity {
      * Link to user and project.
      */
     @NotNull
+    @ManyToOne
     private UsersProjects userProject;
 
     /**
@@ -76,14 +72,18 @@ public class Booking extends BaseEntity {
     /**
      * 
      * @param userProject
-     *            links this to user and project
+     *            links this to user and project, must be persisted/ contain an Id
      * @param start
-     *            start time
+     *            start time must before end time
      * @param end
-     *            end time
+     *            end time must be after start time
      */
     public Booking(final UsersProjects userProject, final Date start, final Date end) {
         this.userProject = Preconditions.checkNotNull(userProject, "userProject must not be null.");
+        if (userProject.getId() == null) {
+            throw new IllegalArgumentException("Given UsersProject has no id assigned (id==null)."
+                                               + " The UserProject must be persisted first.");
+        }
         setStart(start);
         setEnd(end);
     }
