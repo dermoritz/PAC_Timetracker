@@ -1,4 +1,4 @@
-package com.prodyna.pac.timtracker.webapi.resource;
+package com.prodyna.pac.timtracker.webapi.resource.user;
 
 import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.Path;

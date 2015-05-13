@@ -66,28 +66,28 @@ public class Project extends BaseEntity {
     /**
      * @return the version
      */
-    public final int getVersion() {
+    public int getVersion() {
         return version;
     }
 
     /**
      * @return the name
      */
-    public final String getName() {
+    public String getName() {
         return name;
     }
 
     /**
      * @return the description
      */
-    public final String getDescription() {
+    public String getDescription() {
         return description;
     }
 
     /**
      * @param description the description to set
      */
-    public final void setDescription(String description) {
+    public void setDescription(String description) {
         this.description = description;
     }
 
@@ -130,7 +130,7 @@ public class Project extends BaseEntity {
     }
 
     @Override
-    public final String toString() {
+    public String toString() {
         String result = getClass().getSimpleName() + " ";
         if (name != null && !name.trim().isEmpty()) {
             result += "name: " + name;

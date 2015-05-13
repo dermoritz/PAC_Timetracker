@@ -67,14 +67,14 @@ public class User extends BaseEntity {
     /**
      * @return the version
      */
-    public final int getVersion() {
+    public int getVersion() {
         return version;
     }
 
     /**
      * @return the name
      */
-    public final String getName() {
+    public String getName() {
         return name;
     }
     
@@ -82,19 +82,19 @@ public class User extends BaseEntity {
     /**
      * @return the role
      */
-    public final UserRole getRole() {
+    public UserRole getRole() {
         return role;
     }
 
     /**
      * @param role the role to set
      */
-    public final void setRole(UserRole role) {
+    public void setRole(UserRole role) {
         this.role = Preconditions.checkNotNull(role, "Role must not be null.");
     }
 
     @Override
-    public final int hashCode() {
+    public int hashCode() {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((name == null) ? 0 : name.hashCode());
@@ -103,7 +103,7 @@ public class User extends BaseEntity {
     }
 
     @Override
-    public final boolean equals(final Object obj) {
+    public boolean equals(final Object obj) {
         if (this == obj) {
             return true;
         }
@@ -128,7 +128,7 @@ public class User extends BaseEntity {
     }
 
     @Override
-    public final String toString() {
+    public String toString() {
         String result = getClass().getSimpleName() + " ";
         if (name != null && !name.trim().isEmpty()) {
             result += "name: " + name;

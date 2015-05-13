@@ -28,14 +28,14 @@ public class UsersProjects extends BaseEntity {
     /**
      * user id.
      */
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "user")
     private User user;
     
     /**
      * project id.
      */
-    @ManyToOne(cascade = CascadeType.PERSIST)
+    @ManyToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinColumn(name = "project")
     private Project project;
 
@@ -62,19 +62,19 @@ public class UsersProjects extends BaseEntity {
     /**
      * @return the user
      */
-    public final User getUser() {
+    public User getUser() {
         return user;
     }
 
     /**
      * @return the project
      */
-    public final Project getProject() {
+    public Project getProject() {
         return project;
     }
 
     @Override
-    public final int hashCode() {
+    public int hashCode() {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((project == null) ? 0 : project.hashCode());
@@ -83,7 +83,7 @@ public class UsersProjects extends BaseEntity {
     }
 
     @Override
-    public final boolean equals(final Object obj) {
+    public boolean equals(final Object obj) {
         if (this == obj) {
             return true;
         }
@@ -115,7 +115,7 @@ public class UsersProjects extends BaseEntity {
      * @return userId,projectId.
      */
     @Override
-    public final String toString() {
+    public String toString() {
         return user + "," + project;
     }
 

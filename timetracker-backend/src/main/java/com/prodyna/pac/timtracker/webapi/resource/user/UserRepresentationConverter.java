@@ -1,4 +1,4 @@
-package com.prodyna.pac.timtracker.webapi.resource;
+package com.prodyna.pac.timtracker.webapi.resource.user;
 
 import javax.enterprise.context.RequestScoped;
 import javax.ws.rs.core.UriInfo;
@@ -27,7 +27,7 @@ public class UserRepresentationConverter extends RepresentationConverter.Base<Us
     @Override
     public UserRepresentation from(UriInfo uriInfo, User source) {
         UserRepresentation rep = new UserRepresentation(uriInfo);
-        rep.setHandle(source.getId());
+        rep.setId(source.getId());
         rep.setName(source.getName());
         rep.setRole(roleToString(source.getRole()));
         return rep;

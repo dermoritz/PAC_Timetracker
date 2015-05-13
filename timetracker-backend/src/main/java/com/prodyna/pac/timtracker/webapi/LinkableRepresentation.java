@@ -36,7 +36,7 @@ public abstract class LinkableRepresentation<T> implements Representation<T> {
         this.uriInfo = uriInfo;
     }
 
-    @XmlElement(name = "link", namespace = "urn:ced:link")
+    @XmlElement(name = "links", namespace = "urn:timetracker:links")
     public List<ResourceLink> getLinks() {
         if (this.links == null) {
             this.links = new ArrayList<ResourceLink>();

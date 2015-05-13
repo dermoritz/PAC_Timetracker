@@ -23,8 +23,8 @@ import com.google.common.base.Strings;
 import com.jayway.restassured.response.Response;
 import com.prodyna.pac.timtracker.model.UserRole;
 import com.prodyna.pac.timtracker.model.util.PersistenceArquillianContainer;
-import com.prodyna.pac.timtracker.webapi.resource.UserRepresentation;
-import com.prodyna.pac.timtracker.webapi.resource.UserResource;
+import com.prodyna.pac.timtracker.webapi.resource.user.UserRepresentation;
+import com.prodyna.pac.timtracker.webapi.resource.user.UserResource;
 
 /**
  * Tests rest api for user - {@link UserResource}
@@ -53,39 +53,51 @@ public class UserResourceTest {
     private URL base;
 
     /**
-     * creates, retrieves, updates, deletes a user via rest api.
+     * creates, retrieves, updates, deletes a user via rest api and xml media type.
      * @throws MalformedURLException
      */
     @Test
-    public void userLifecycle() throws MalformedURLException {
+    public void userLifeCycleXml() throws MalformedURLException {
+        userLifeCycle(MediaType.APPLICATION_XML);
+    }
+    
+    /**
+     * creates, retrieves, updates, deletes a user via rest api and json media type.
+     * @throws MalformedURLException
+     */
+    @Test
+    public void userLifeCycleJson() throws MalformedURLException {
+        userLifeCycle(MediaType.APPLICATION_JSON);
+    }
+    
+    private void userLifeCycle(String mediaType) throws MalformedURLException{
         UserRepresentation xmlUser = new UserRepresentation();
         xmlUser.setName("Klaus");
         xmlUser.setRole("USER");
         //Store user
         URL url = new URL(base, USER_PATH);
-        String uriUser = given().contentType(MediaType.APPLICATION_XML).body(xmlUser)
+        String uriUser = given().contentType(mediaType).body(xmlUser)
                                 .then().statusCode(Status.CREATED.getStatusCode())
                                 .when().post(url)
                                 //store should return uri for stored object in location header
                                 .header("Location");
         //retrieve the user by url returned on creation
-        UserRepresentation fetchedUser = given().then().contentType(MediaType.APPLICATION_XML).statusCode(Status.OK.getStatusCode())
+        UserRepresentation fetchedUser = given().then().contentType(mediaType).statusCode(Status.OK.getStatusCode())
                .when().get(uriUser).body().as(UserRepresentation.class);
         assertThat(fetchedUser.getName(), is("Klaus"));
         //update user
         String newRole = UserRole.ADMIN.name();
         fetchedUser.setRole(newRole);
-        given().contentType(MediaType.APPLICATION_XML).body(fetchedUser).
+        given().contentType(mediaType).body(fetchedUser).
         then().statusCode(Status.NO_CONTENT.getStatusCode()).when().put(uriUser);
         //check update
-        UserRepresentation updatedUser = given().then().contentType(MediaType.APPLICATION_XML).statusCode(Status.OK.getStatusCode())
+        UserRepresentation updatedUser = given().then().contentType(mediaType).statusCode(Status.OK.getStatusCode())
         .when().get(uriUser).body().as(UserRepresentation.class);
         assertThat(updatedUser.getRole(), is(newRole));
         //delete user
         given().then().statusCode(Status.NO_CONTENT.getStatusCode()).when().delete(uriUser);
         //now fetching user should return 404
         given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when().get(uriUser);
-        
     }
 
 }

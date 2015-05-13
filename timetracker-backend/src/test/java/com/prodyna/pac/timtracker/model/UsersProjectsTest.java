@@ -2,11 +2,13 @@ package com.prodyna.pac.timtracker.model;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-
+import static org.hamcrest.core.Is.is;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
+import org.hamcrest.core.Is;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
@@ -102,23 +104,31 @@ public class UsersProjectsTest {
      */
     @Test
     public void createRemove() {
+        
         //create
         UsersProjects usersProjects = new UsersProjects(new User("Peter", UserRole.USER), new Project("p1", "d of p1"));
         UsersProjects storedUsersProjects = repository.store(usersProjects);
         Long id = storedUsersProjects.getId();
+        //id was generated
         assertNotNull(id);
+        //fetch from db
         UsersProjects fetchedUsersProjects = repository.get(id);
-        Long projectId = fetchedUsersProjects.getProject().getId();
-        Long userId = fetchedUsersProjects.getUser().getId();
+        //fetch linked entities
+        Project fetchedProject = fetchedUsersProjects.getProject();
+        User fetchedUser = storedUsersProjects.getUser();
         //should work due to cascaded persist
-        assertNotNull(projectId);
-        assertNotNull(userId);
+        assertNotNull(fetchedProject.getId());
+        assertNotNull(fetchedUser.getId());
+        //should work due to cascaded merge
+        assertThat(fetchedUser.getRole(), is(UserRole.USER));
+        assertThat(fetchedProject.getDescription(), is("d of p1"));
+
         //remove USersProject
         repository.remove(storedUsersProjects);
         assertNull(repository.get(id));
         //since removal is not cascaded user and project should still exist
-        assertNotNull(projectId);
-        assertNotNull(userId);   
+        assertNotNull(fetchedProject.getId());
+        assertNotNull(fetchedUser.getId());   
         assertTrue(createdFired);
         assertTrue(removedFired);
     }

@@ -1,4 +1,4 @@
-package com.prodyna.pac.timtracker.webapi.resource;
+package com.prodyna.pac.timtracker.webapi.resource.user;
 
 import java.util.List;
 
@@ -19,40 +19,39 @@ import com.prodyna.pac.timtracker.webapi.ResourceLink;
  * @author moritz löser (moritz.loeser@prodyna.com)
  *
  */
-@XmlRootElement(name = "user", namespace = "urn:ced:user")
+@XmlRootElement(name = "user", namespace = "urn:timetracker:user")
 public class UserRepresentation extends LinkableRepresentation<User> implements Identifiable {
 
     @NotNull
-    private Long handle;
+    private Long id;
     @NotNull
     private String name;
     @NotNull
     private String role;
-
+    
+    /**
+     * Default.
+     */
     public UserRepresentation() {
-        this(null);
     }
-
+    
+    /**
+     * Constructor for {@link LinkableRepresentation}.
+     * @param uriInfo
+     */
     public UserRepresentation(UriInfo uriInfo) {
         super(User.class, "user", uriInfo);
     }
 
     @Override
-    @XmlTransient
     public Long getId() {
-        return handle;
+        return id;
     }
 
-    @XmlElement
-    public Long getHandle() {
-        return handle;
-    }
-    //TODO probably better to be removed
-    public void setHandle(Long handle) {
-        this.handle = handle;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    @XmlElement
     public String getName() {
         return name;
     }
@@ -61,7 +60,6 @@ public class UserRepresentation extends LinkableRepresentation<User> implements 
         this.name = name;
     }
 
-    @XmlElement
     public String getRole() {
         return role;
     }
@@ -74,14 +72,14 @@ public class UserRepresentation extends LinkableRepresentation<User> implements 
     public List<ResourceLink> getLinks() {
         List<ResourceLink> links = super.getLinks();
         if (getUriInfo() != null) {
-            if (doesNotContainRel("self") && handle != null) {
+            if (doesNotContainRel("self") && id != null) {
                 links.add(
                      new ResourceLink(
                                       "self",
                                       getUriInfo().getBaseUriBuilder().clone()
                                                   .path(UserResource.class)
                                                   .segment("{id}")
-                                                  .build(handle),
+                                                  .build(id),
                                       UserResource.USER_XML_MEDIA_TYPE));
             }
         }
