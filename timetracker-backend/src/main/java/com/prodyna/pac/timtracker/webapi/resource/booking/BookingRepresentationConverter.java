@@ -4,7 +4,10 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.core.UriInfo;
 
+import org.slf4j.Logger;
+
 import com.prodyna.pac.timtracker.model.Booking;
+import com.prodyna.pac.timtracker.model.UsersProjects;
 import com.prodyna.pac.timtracker.webapi.RepresentationConverter;
 import com.prodyna.pac.timtracker.webapi.resource.users_projects.UsersProjectsRepresentationConverter;
 
@@ -16,7 +19,7 @@ import com.prodyna.pac.timtracker.webapi.resource.users_projects.UsersProjectsRe
  */
 @RequestScoped
 public class BookingRepresentationConverter extends RepresentationConverter.Base<BookingRepresentation, Booking> {
-
+    
     @Inject
     private UsersProjectsRepresentationConverter upRepConv;
 
@@ -31,10 +34,10 @@ public class BookingRepresentationConverter extends RepresentationConverter.Base
     }
 
     @Override
-    public Booking to(UriInfo uriInfo, BookingRepresentation representation) {
-        return new Booking(upRepConv.to(uriInfo, representation.getUsersProjects()),
-                           representation.getStart(),
-                           representation.getEnd());
+    public Booking createNew(UriInfo uriInfo, BookingRepresentation representation) {
+        //create new objects
+        UsersProjects usersProjects = upRepConv.to(uriInfo, representation.getUsersProjects());
+        return new Booking(usersProjects, representation.getStart(), representation.getEnd());
     }
 
     @Override

@@ -34,9 +34,8 @@ public class UserRepresentationConverter extends RepresentationConverter.Base<Us
     }
 
     @Override
-    public User to(UriInfo uriInfo, UserRepresentation representation) {
-        return update(uriInfo, representation, new User(representation.getName(),
-                                                        stringToRole(representation.getRole())));
+    public User createNew(UriInfo uriInfo, UserRepresentation representation) {
+        return new User(representation.getName(), stringToRole(representation.getRole()));
     }
 
     @Override

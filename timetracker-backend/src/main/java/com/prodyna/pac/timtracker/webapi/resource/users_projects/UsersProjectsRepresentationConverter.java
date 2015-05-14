@@ -37,7 +37,7 @@ public class UsersProjectsRepresentationConverter
     }
 
     @Override
-    public UsersProjects to(UriInfo uriInfo, UsersProjectsRepresentation representation) {
+    public UsersProjects createNew(UriInfo uriInfo, UsersProjectsRepresentation representation) {
         return new UsersProjects(uRepConv.to(uriInfo, representation.getUser()),
                                  proRepConv.to(uriInfo, representation.getProject()));
     }

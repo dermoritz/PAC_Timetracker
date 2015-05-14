@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import com.prodyna.pac.timtracker.persistence.Identifiable;
 import com.prodyna.pac.timtracker.persistence.Repository;
 import com.prodyna.pac.timtracker.persistence.Timestampable;
+import com.prodyna.pac.timtracker.webapi.resource.booking.BookingRepresentation;
 
 /**
  * Abstraction for model entities exposed via rest as resources.

@@ -25,7 +25,7 @@ public class ProjectRepresentationConverter extends RepresentationConverter.Base
     }
 
     @Override
-    public Project to(UriInfo uriInfo, ProjectRepresentation representation) {
+    public Project createNew(UriInfo uriInfo, ProjectRepresentation representation) {
         return new Project(representation.getName(), representation.getDescription());
     }
 

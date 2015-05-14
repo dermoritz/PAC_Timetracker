@@ -4,6 +4,8 @@ import java.util.Date;
 
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.UriInfo;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
@@ -18,18 +20,17 @@ import com.prodyna.pac.timtracker.webapi.resource.users_projects.UsersProjectsRe
  * @author moritz löser (moritz.loeser@prodyna.com)
  *
  */
-@XmlRootElement(name = "project", namespace = "urn:timetracker:booking")
+@XmlRootElement(name = "booking", namespace = "urn:timetracker:booking")
+@XmlAccessorType(XmlAccessType.FIELD)
 public class BookingRepresentation extends LinkableRepresentation<Booking> implements Identifiable {
     
     @NotNull
     private Long id;
     
     @NotNull
-    @XmlJavaTypeAdapter(DateXmlAdapter.class)
     private Date start;
     
     @NotNull
-    @XmlJavaTypeAdapter(DateXmlAdapter.class)
     private Date end;
     
     @NotNull
