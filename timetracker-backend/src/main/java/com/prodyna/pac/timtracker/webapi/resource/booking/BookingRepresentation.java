@@ -3,12 +3,12 @@ package com.prodyna.pac.timtracker.webapi.resource.booking;
 import java.util.Date;
 
 import javax.validation.constraints.NotNull;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
+import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.prodyna.pac.timtracker.model.Booking;
 import com.prodyna.pac.timtracker.persistence.Identifiable;
+import com.prodyna.pac.timtracker.webapi.Linkable;
 import com.prodyna.pac.timtracker.webapi.resource.users_projects.UsersProjectsRepresentation;
 
 /**
@@ -18,12 +18,9 @@ import com.prodyna.pac.timtracker.webapi.resource.users_projects.UsersProjectsRe
  *
  */
 @XmlRootElement(name = "booking", namespace = "urn:timetracker:booking")
-@XmlAccessorType(XmlAccessType.FIELD)
-public class BookingRepresentation implements Identifiable {
-    
-    @NotNull
-    private Long id;
-    
+public class BookingRepresentation extends Linkable {
+
+
     @NotNull
     private Date start;
     
@@ -33,9 +30,12 @@ public class BookingRepresentation implements Identifiable {
     @NotNull
     private UsersProjectsRepresentation usersProjects;
     
-    @Override
-    public Long getId() {
-        return id;
+    public BookingRepresentation() {
+        this(null);
+    }
+
+    public BookingRepresentation(UriInfo uriInfo) {
+        super(uriInfo);
     }
     
     /**
@@ -80,13 +80,10 @@ public class BookingRepresentation implements Identifiable {
         this.usersProjects = usersProjects;
     }
 
-    /**
-     * @param id the id to set
-     */
-    public void setId(Long id) {
-        this.id = id;
+    @Override
+    protected Class<?> getResourceClass() {
+        return BookingResource.class; 
     }
-    
     
     
 }

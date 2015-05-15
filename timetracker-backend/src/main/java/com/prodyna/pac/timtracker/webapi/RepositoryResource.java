@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import com.prodyna.pac.timtracker.persistence.Identifiable;
 import com.prodyna.pac.timtracker.persistence.Repository;
 import com.prodyna.pac.timtracker.persistence.Timestampable;
-import com.prodyna.pac.timtracker.webapi.resource.booking.BookingRepresentation;
 
 /**
  * Abstraction for model entities exposed via rest as resources.
@@ -125,7 +124,7 @@ public abstract class RepositoryResource<DOMAIN extends Identifiable & Timestamp
     @POST
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response create(REP representation) {
-        DOMAIN entity = getConverter().to(representation);
+        DOMAIN entity = getConverter().to(uriInfo, representation);
 
         DOMAIN storedEntity = getRepository().store(entity);
         return Response.created(UriBuilder.fromResource(getResourceClass()).segment("{id}").build(storedEntity.getId()))
@@ -166,7 +165,7 @@ public abstract class RepositoryResource<DOMAIN extends Identifiable & Timestamp
             return Response.status(Status.NOT_FOUND).type(getMediaType()).build();
         }
 
-        return Response.ok(getConverter().from(entity))
+        return Response.ok(getConverter().from(uriInfo, entity))
                        .type(getMediaType())
                        .lastModified(entity.getLastModified())
                        .build();
@@ -190,7 +189,7 @@ public abstract class RepositoryResource<DOMAIN extends Identifiable & Timestamp
             return Response.status(Status.NOT_FOUND).build();
         }
 
-        DOMAIN updatedEntity = getConverter().update(representation, entity);
+        DOMAIN updatedEntity = getConverter().update(uriInfo, representation, entity);
         getRepository().store(updatedEntity);
 
         return Response.noContent().build();

@@ -12,15 +12,18 @@ import javax.ws.rs.core.Response.Status;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.arquillian.persistence.Cleanup;
-import org.jboss.arquillian.persistence.TestExecutionPhase;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.config.DecoderConfig;
+import com.jayway.restassured.config.EncoderConfig;
+import com.jayway.restassured.config.RestAssuredConfig;
 import com.prodyna.pac.timtracker.model.util.PersistenceArquillianContainer;
 import com.prodyna.pac.timtracker.webapi.resource.project.ProjectRepresentation;
 import com.prodyna.pac.timtracker.webapi.resource.user.UserRepresentation;
@@ -49,7 +52,14 @@ public class UsersProjectsResourceTest {
         return PersistenceArquillianContainer.get().addPackages(true, "com.prodyna.pac.timtracker")
                                              .addClasses(Strings.class, Preconditions.class);
     }
-
+    
+    @BeforeClass
+    public static void config(){
+        RestAssured.config = new RestAssuredConfig();
+        RestAssured.config = RestAssured.config.encoderConfig(EncoderConfig.encoderConfig().defaultContentCharset("UTF-8"));
+        RestAssured.config = RestAssured.config.decoderConfig(DecoderConfig.decoderConfig().defaultContentCharset("UTF-8"));
+    }
+    
     @ArquillianResource
     private URL base;
 
@@ -60,7 +70,6 @@ public class UsersProjectsResourceTest {
      * @throws MalformedURLException
      */
     @Test
-    @Cleanup(phase = TestExecutionPhase.BEFORE)
     public void usersProjectsLifeCycleXml() throws MalformedURLException {
         usersProjectsLifeCycle(MediaType.APPLICATION_XML);
     }
@@ -72,9 +81,39 @@ public class UsersProjectsResourceTest {
      * @throws MalformedURLException
      */
     @Test
-    @Cleanup(phase = TestExecutionPhase.BEFORE)
     public void usersProjectsLifeCycleJson() throws MalformedURLException {
         usersProjectsLifeCycle(MediaType.APPLICATION_JSON);
+    }
+
+    @Test
+    public void linkTest() throws MalformedURLException {
+        UserRepresentation xmlUser = new UserRepresentation();
+        String userName = "Jürgen";
+        String userRole = "USER";
+        xmlUser.setName(userName);
+        xmlUser.setRole(userRole);
+        ProjectRepresentation projectRep = new ProjectRepresentation();
+        String pDescr = "p1 d";
+        String pName = "p2";
+        projectRep.setDescription(pDescr);
+        projectRep.setName(pName);
+        UsersProjectsRepresentation upRep = new UsersProjectsRepresentation();
+        upRep.setProject(projectRep);
+        upRep.setUser(xmlUser);
+        
+        URL url = new URL(base, USERSPROJECTS_PATH);
+        String uriUsersProject = given().contentType(MediaType.APPLICATION_JSON).body(upRep)
+                                        .then().statusCode(Status.CREATED.getStatusCode())
+                                        .when().post(url)
+                                        // store should return uri for stored
+                                        // object in location header
+                                        .header("Location");
+        // retrieve the usersprojects by url returned on creation
+        UsersProjectsRepresentation fetchedUP = given().then().contentType(MediaType.APPLICATION_JSON)
+                                                       .statusCode(Status.OK.getStatusCode())
+                                                       .when().get(uriUsersProject).body()
+                                                       .as(UsersProjectsRepresentation.class);
+        assertThat(fetchedUP.getSelf(), is(uriUsersProject));
     }
 
     private void usersProjectsLifeCycle(String mediaType) throws MalformedURLException {

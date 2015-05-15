@@ -1,9 +1,11 @@
 package com.prodyna.pac.timtracker.webapi.resource.user;
 
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.prodyna.pac.timtracker.persistence.Identifiable;
+import com.prodyna.pac.timtracker.webapi.Linkable;
 
 /**
  * Users data representation for rest side.
@@ -12,24 +14,22 @@ import com.prodyna.pac.timtracker.persistence.Identifiable;
  *
  */
 @XmlRootElement(name = "user", namespace = "urn:timetracker:user")
-public class UserRepresentation implements Identifiable {
+public class UserRepresentation extends Linkable {
 
-    @NotNull
-    private Long id;
     @NotNull
     private String name;
+
     @NotNull
     private String role;
+
+    public UserRepresentation() {
+        this(null);
+    }
     
-    @Override
-    public Long getId() {
-        return id;
+    public UserRepresentation(UriInfo uriInfo) {
+        super(uriInfo);
     }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
+    
     public String getName() {
         return name;
     }
@@ -44,6 +44,11 @@ public class UserRepresentation implements Identifiable {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    @Override
+    protected Class<?> getResourceClass() {
+        return UserResource.class; 
     }
 
 }

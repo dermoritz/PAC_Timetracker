@@ -1,10 +1,11 @@
 package com.prodyna.pac.timtracker.webapi.resource.users_projects;
 
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.prodyna.pac.timtracker.model.UsersProjects;
-import com.prodyna.pac.timtracker.persistence.Identifiable;
+import com.prodyna.pac.timtracker.webapi.Linkable;
 import com.prodyna.pac.timtracker.webapi.resource.project.ProjectRepresentation;
 import com.prodyna.pac.timtracker.webapi.resource.user.UserRepresentation;
 
@@ -15,22 +16,22 @@ import com.prodyna.pac.timtracker.webapi.resource.user.UserRepresentation;
  *
  */
 @XmlRootElement(name = "UsersProjects", namespace = "urn:timetracker:usersProjects")
-public class UsersProjectsRepresentation implements Identifiable {
-    
+public class UsersProjectsRepresentation extends Linkable {
+
     @NotNull
     private UserRepresentation user;
-    
+
     @NotNull
     private ProjectRepresentation project;
-    
-    @NotNull
-    private Long id;
 
-    @Override
-    public Long getId() {
-        return id;
+    public UsersProjectsRepresentation() {
+        this(null);
     }
-  
+
+    public UsersProjectsRepresentation(UriInfo uriInfo) {
+        super(uriInfo);
+    }
+
     /**
      * @return the user
      */
@@ -38,14 +39,13 @@ public class UsersProjectsRepresentation implements Identifiable {
         return user;
     }
 
-
     /**
-     * @param user the user to set
+     * @param user
+     *            the user to set
      */
     public void setUser(UserRepresentation user) {
         this.user = user;
     }
-
 
     /**
      * @return the project
@@ -54,20 +54,20 @@ public class UsersProjectsRepresentation implements Identifiable {
         return project;
     }
 
-
     /**
-     * @param project the project to set
+     * @param project
+     *            the project to set
      */
     public void setProject(ProjectRepresentation project) {
         this.project = project;
     }
 
-
-    /**
-     * @param id the id to set
-     */
-    public void setId(Long id) {
-        this.id = id;
+    @Override
+    protected Class<?> getResourceClass() {
+        return UsersProjectsResource.class; 
     }
+
+   
+    
     
 }

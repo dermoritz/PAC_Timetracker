@@ -25,7 +25,7 @@ public class UserRepresentationConverter extends RepresentationConverter.Base<Us
     }
 
     @Override
-    public UserRepresentation from(User source) {
+    public UserRepresentation from(UriInfo uriInfo, User source) {
         UserRepresentation rep = new UserRepresentation();
         rep.setId(source.getId());
         rep.setName(source.getName());
@@ -34,12 +34,12 @@ public class UserRepresentationConverter extends RepresentationConverter.Base<Us
     }
 
     @Override
-    public User createNew(UserRepresentation representation) {
+    public User createNew(UriInfo uriInfo, UserRepresentation representation) {
         return new User(representation.getName(), stringToRole(representation.getRole()));
     }
 
     @Override
-    public User update(UserRepresentation representation, User target) {
+    public User update(UriInfo uriInfo, UserRepresentation representation, User target) {
         target.setRole(stringToRole(representation.getRole()));
         return target;
     }

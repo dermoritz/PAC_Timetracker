@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.inject.Inject;
+import javax.ws.rs.core.UriInfo;
 
 import com.prodyna.pac.timtracker.persistence.Identifiable;
 import com.prodyna.pac.timtracker.persistence.Repository;
@@ -38,7 +39,7 @@ public interface RepresentationConverter<REST extends Identifiable, SOURCE> {
      *            entity in db
      * @return rest representation
      */
-    REST from(SOURCE source);
+    REST from(UriInfo uriInfo, SOURCE source);
 
     /**
      * Returns a collection of rest data for given collection of db-data.
@@ -47,7 +48,7 @@ public interface RepresentationConverter<REST extends Identifiable, SOURCE> {
      *            collection of db entities
      * @return rest representation of given entities
      */
-    Collection<REST> from(Collection<SOURCE> sources);
+    Collection<REST> from(UriInfo uriInfo, Collection<SOURCE> sources);
 
     /**
      * Converts a rest representation (dto) into entity object.
@@ -56,7 +57,7 @@ public interface RepresentationConverter<REST extends Identifiable, SOURCE> {
      *            dto
      * @return entity object
      */
-    SOURCE to(REST representation);
+    SOURCE to(UriInfo uriInfo, REST representation);
 
     /**
      * Updates given entity with data from dto.
@@ -67,9 +68,9 @@ public interface RepresentationConverter<REST extends Identifiable, SOURCE> {
      *            entity to be updated
      * @return updated entity
      */
-    SOURCE update(REST representation, SOURCE target);
+    SOURCE update(UriInfo uriInfo, REST representation, SOURCE target);
 
-    Collection<SOURCE> to(Collection<REST> representations);
+    Collection<SOURCE> to(UriInfo uriInfo, Collection<REST> representations);
 
     /**
      * Base implementation for converter.
@@ -109,12 +110,12 @@ public interface RepresentationConverter<REST extends Identifiable, SOURCE> {
          * let it create a new instance.
          */
         @Override
-        public SOURCE to(REST representation) {
+        public SOURCE to(UriInfo uriInfo, REST representation) {
             Long id = representation.getId();
             if (id != null) {
                 return repo.get(id);
             } else {
-                return createNew(representation);
+                return createNew(uriInfo, representation);
             }
 
         }
@@ -126,7 +127,7 @@ public interface RepresentationConverter<REST extends Identifiable, SOURCE> {
          *            dto
          * @return new instance of entity
          */
-        protected abstract SOURCE createNew(REST representation);
+        protected abstract SOURCE createNew(UriInfo uriInfo, REST representation);
 
         @Override
         public Class<REST> getRepresentationClass() {
@@ -139,19 +140,19 @@ public interface RepresentationConverter<REST extends Identifiable, SOURCE> {
         }
 
         @Override
-        public Collection<REST> from(Collection<SOURCE> ins) {
+        public Collection<REST> from(UriInfo uriInfo, Collection<SOURCE> ins) {
             Collection<REST> out = new ArrayList<REST>();
             for (SOURCE in : ins) {
-                out.add(from(in));
+                out.add(from(uriInfo, in));
             }
             return out;
         }
 
         @Override
-        public Collection<SOURCE> to(Collection<REST> ins) {
+        public Collection<SOURCE> to(UriInfo uriInfo, Collection<REST> ins) {
             Collection<SOURCE> out = new ArrayList<SOURCE>();
             for (REST in : ins) {
-                out.add(to(in));
+                out.add(to(uriInfo, in));
             }
             return out;
         }
