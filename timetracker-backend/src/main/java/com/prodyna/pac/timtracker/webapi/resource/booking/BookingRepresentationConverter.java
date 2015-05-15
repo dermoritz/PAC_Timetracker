@@ -24,24 +24,24 @@ public class BookingRepresentationConverter extends RepresentationConverter.Base
     private UsersProjectsRepresentationConverter upRepConv;
 
     @Override
-    public BookingRepresentation from(UriInfo uriInfo, Booking source) {
-        BookingRepresentation bRep = new BookingRepresentation(uriInfo);
+    public BookingRepresentation from(Booking source) {
+        BookingRepresentation bRep = new BookingRepresentation();
         bRep.setEnd(source.getEnd());
         bRep.setStart(source.getStart());
         bRep.setId(source.getId());
-        bRep.setUsersProjects(upRepConv.from(uriInfo, source.getUserProject()));
+        bRep.setUsersProjects(upRepConv.from(source.getUserProject()));
         return bRep;
     }
 
     @Override
-    public Booking createNew(UriInfo uriInfo, BookingRepresentation representation) {
+    public Booking createNew(BookingRepresentation representation) {
         //create new objects
-        UsersProjects usersProjects = upRepConv.to(uriInfo, representation.getUsersProjects());
+        UsersProjects usersProjects = upRepConv.to(representation.getUsersProjects());
         return new Booking(usersProjects, representation.getStart(), representation.getEnd());
     }
 
     @Override
-    public Booking update(UriInfo uriInfo, BookingRepresentation representation, Booking target) {
+    public Booking update(BookingRepresentation representation, Booking target) {
         target.setEnd(representation.getEnd());
         target.setStart(representation.getStart());
         return target;

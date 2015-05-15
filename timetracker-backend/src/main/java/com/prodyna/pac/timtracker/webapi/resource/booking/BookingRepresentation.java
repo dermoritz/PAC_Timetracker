@@ -3,15 +3,12 @@ package com.prodyna.pac.timtracker.webapi.resource.booking;
 import java.util.Date;
 
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import com.prodyna.pac.timtracker.model.Booking;
 import com.prodyna.pac.timtracker.persistence.Identifiable;
-import com.prodyna.pac.timtracker.webapi.LinkableRepresentation;
 import com.prodyna.pac.timtracker.webapi.resource.users_projects.UsersProjectsRepresentation;
 
 /**
@@ -22,7 +19,7 @@ import com.prodyna.pac.timtracker.webapi.resource.users_projects.UsersProjectsRe
  */
 @XmlRootElement(name = "booking", namespace = "urn:timetracker:booking")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class BookingRepresentation extends LinkableRepresentation<Booking> implements Identifiable {
+public class BookingRepresentation implements Identifiable {
     
     @NotNull
     private Long id;
@@ -39,20 +36,6 @@ public class BookingRepresentation extends LinkableRepresentation<Booking> imple
     @Override
     public Long getId() {
         return id;
-    }
-    
-    /**
-     * Default.
-     */
-    public BookingRepresentation() {
-    }
-    
-    /**
-     * Used for {@link LinkableRepresentation}.
-     * @param uriInfo
-     */
-    public BookingRepresentation(UriInfo uriInfo) {
-        super(Booking.class, "booking", uriInfo);
     }
     
     /**

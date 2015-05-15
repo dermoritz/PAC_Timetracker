@@ -16,8 +16,8 @@ import com.prodyna.pac.timtracker.webapi.RepresentationConverter;
 public class ProjectRepresentationConverter extends RepresentationConverter.Base<ProjectRepresentation, Project> {
 
     @Override
-    public ProjectRepresentation from(UriInfo uriInfo, Project source) {
-        ProjectRepresentation projectRepresentation = new ProjectRepresentation(uriInfo);
+    public ProjectRepresentation from(Project source) {
+        ProjectRepresentation projectRepresentation = new ProjectRepresentation();
         projectRepresentation.setDescription(source.getDescription());
         projectRepresentation.setId(source.getId());
         projectRepresentation.setName(source.getName());
@@ -25,12 +25,12 @@ public class ProjectRepresentationConverter extends RepresentationConverter.Base
     }
 
     @Override
-    public Project createNew(UriInfo uriInfo, ProjectRepresentation representation) {
+    public Project createNew(ProjectRepresentation representation) {
         return new Project(representation.getName(), representation.getDescription());
     }
 
     @Override
-    public Project update(UriInfo uriInfo, ProjectRepresentation representation, Project target) {
+    public Project update(ProjectRepresentation representation, Project target) {
         target.setDescription(representation.getDescription());
         return target;
     }

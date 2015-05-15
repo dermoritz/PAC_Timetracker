@@ -9,7 +9,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Date;
 
-import javax.ejb.Startup;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
@@ -29,7 +28,6 @@ import com.prodyna.pac.timtracker.model.util.PersistenceArquillianContainer;
 import com.prodyna.pac.timtracker.webapi.resource.booking.BookingRepresentation;
 import com.prodyna.pac.timtracker.webapi.resource.project.ProjectRepresentation;
 import com.prodyna.pac.timtracker.webapi.resource.user.UserRepresentation;
-import com.prodyna.pac.timtracker.webapi.resource.user.UserResource;
 import com.prodyna.pac.timtracker.webapi.resource.users_projects.UsersProjectsRepresentation;
 
 /**

@@ -1,12 +1,10 @@
 package com.prodyna.pac.timtracker.webapi.resource.users_projects;
 
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.prodyna.pac.timtracker.model.UsersProjects;
 import com.prodyna.pac.timtracker.persistence.Identifiable;
-import com.prodyna.pac.timtracker.webapi.LinkableRepresentation;
 import com.prodyna.pac.timtracker.webapi.resource.project.ProjectRepresentation;
 import com.prodyna.pac.timtracker.webapi.resource.user.UserRepresentation;
 
@@ -17,7 +15,7 @@ import com.prodyna.pac.timtracker.webapi.resource.user.UserRepresentation;
  *
  */
 @XmlRootElement(name = "UsersProjects", namespace = "urn:timetracker:usersProjects")
-public class UsersProjectsRepresentation extends LinkableRepresentation<UsersProjects> implements Identifiable {
+public class UsersProjectsRepresentation implements Identifiable {
     
     @NotNull
     private UserRepresentation user;
@@ -27,28 +25,12 @@ public class UsersProjectsRepresentation extends LinkableRepresentation<UsersPro
     
     @NotNull
     private Long id;
-    
-    
+
     @Override
     public Long getId() {
         return id;
     }
-    
-    /**
-     * Default.
-     */
-    public UsersProjectsRepresentation(){
-        
-    }
-    
-    /**
-     * Used for {@link LinkableRepresentation}.
-     * @param uriInfo
-     */
-    public UsersProjectsRepresentation(UriInfo uriInfo) {
-        super(UsersProjects.class, "usersProjects", uriInfo);
-    }
-
+  
     /**
      * @return the user
      */

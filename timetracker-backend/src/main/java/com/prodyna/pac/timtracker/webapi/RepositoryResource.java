@@ -37,7 +37,7 @@ import com.prodyna.pac.timtracker.webapi.resource.booking.BookingRepresentation;
  *
  *
  */
-public abstract class RepositoryResource<DOMAIN extends Identifiable & Timestampable, REP extends Representation<DOMAIN>>
+public abstract class RepositoryResource<DOMAIN extends Identifiable & Timestampable, REP extends Identifiable>
                                                                                                                           implements
                                                                                                                           Resource {
 
@@ -125,7 +125,7 @@ public abstract class RepositoryResource<DOMAIN extends Identifiable & Timestamp
     @POST
     @Consumes({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response create(REP representation) {
-        DOMAIN entity = getConverter().to(uriInfo, representation);
+        DOMAIN entity = getConverter().to(representation);
 
         DOMAIN storedEntity = getRepository().store(entity);
         return Response.created(UriBuilder.fromResource(getResourceClass()).segment("{id}").build(storedEntity.getId()))
@@ -166,7 +166,7 @@ public abstract class RepositoryResource<DOMAIN extends Identifiable & Timestamp
             return Response.status(Status.NOT_FOUND).type(getMediaType()).build();
         }
 
-        return Response.ok(getConverter().from(uriInfo, entity))
+        return Response.ok(getConverter().from(entity))
                        .type(getMediaType())
                        .lastModified(entity.getLastModified())
                        .build();
@@ -190,7 +190,7 @@ public abstract class RepositoryResource<DOMAIN extends Identifiable & Timestamp
             return Response.status(Status.NOT_FOUND).build();
         }
 
-        DOMAIN updatedEntity = getConverter().update(uriInfo, representation, entity);
+        DOMAIN updatedEntity = getConverter().update(representation, entity);
         getRepository().store(updatedEntity);
 
         return Response.noContent().build();
@@ -210,7 +210,7 @@ public abstract class RepositoryResource<DOMAIN extends Identifiable & Timestamp
      * Tries to match media type of request with available (by Resource) types.
      * If no match is found the first type is returned.
      * 
-     * @return
+     * @return media type
      */
     private String getMediaType() {
         // get types from child class

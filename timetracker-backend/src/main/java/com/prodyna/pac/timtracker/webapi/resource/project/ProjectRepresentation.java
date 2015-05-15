@@ -1,14 +1,11 @@
 package com.prodyna.pac.timtracker.webapi.resource.project;
 
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.prodyna.pac.timtracker.model.Project;
 import com.prodyna.pac.timtracker.persistence.Identifiable;
-import com.prodyna.pac.timtracker.webapi.LinkableRepresentation;
 @XmlRootElement(name = "project", namespace = "urn:timetracker:project")
-public class ProjectRepresentation extends LinkableRepresentation<Project> implements Identifiable {
+public class ProjectRepresentation implements Identifiable {
     
     @NotNull
     private String name;
@@ -18,26 +15,11 @@ public class ProjectRepresentation extends LinkableRepresentation<Project> imple
     
     private String description;
     
-    /**
-     * Default.
-     */
-    public ProjectRepresentation() {
-        
-    }
-    
-    /**
-     * Used for {@link LinkableRepresentation}.
-     * @param uriInfo
-     */
-    public ProjectRepresentation(UriInfo uriInfo) {
-        super(Project.class, "project", uriInfo);
-    }
-    
     @Override
     public Long getId() {
         return id;
     }
-
+    
     /**
      * @return the name
      */

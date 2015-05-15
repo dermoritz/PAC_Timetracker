@@ -6,11 +6,9 @@ import javax.ws.rs.core.MediaType;
 
 import com.prodyna.pac.timtracker.model.Booking;
 import com.prodyna.pac.timtracker.webapi.RepositoryResource;
-import com.prodyna.pac.timtracker.webapi.interceptor.Linkable;
 
 @Path("/booking")
 @RequestScoped
-@Linkable
 public class BookingResource extends RepositoryResource<Booking, BookingRepresentation> {
 
     /**

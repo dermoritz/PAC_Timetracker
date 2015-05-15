@@ -6,7 +6,6 @@ import javax.ws.rs.core.MediaType;
 
 import com.prodyna.pac.timtracker.model.Project;
 import com.prodyna.pac.timtracker.webapi.RepositoryResource;
-import com.prodyna.pac.timtracker.webapi.interceptor.Linkable;
 
 /**
  * Crud rest resource for {@link Project}.
@@ -15,7 +14,6 @@ import com.prodyna.pac.timtracker.webapi.interceptor.Linkable;
  */
 @Path("/project")
 @RequestScoped
-@Linkable
 public class ProjectResource extends RepositoryResource<Project, ProjectRepresentation> {
 
     

@@ -6,7 +6,6 @@ import javax.ws.rs.core.MediaType;
 
 import com.prodyna.pac.timtracker.model.User;
 import com.prodyna.pac.timtracker.webapi.RepositoryResource;
-import com.prodyna.pac.timtracker.webapi.interceptor.Linkable;
 
 /**
  * Implements rest crud for {@link User} - relies on {@link RepositoryResource}.
@@ -16,7 +15,6 @@ import com.prodyna.pac.timtracker.webapi.interceptor.Linkable;
  */
 @Path("/user")
 @RequestScoped
-@Linkable
 public class UserResource extends RepositoryResource<User, UserRepresentation> {
     
     /**

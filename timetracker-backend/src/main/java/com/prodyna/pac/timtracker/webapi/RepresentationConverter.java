@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.inject.Inject;
-import javax.persistence.criteria.Fetch;
-import javax.ws.rs.core.UriInfo;
 
 import com.prodyna.pac.timtracker.persistence.Identifiable;
 import com.prodyna.pac.timtracker.persistence.Repository;
@@ -36,50 +34,42 @@ public interface RepresentationConverter<REST extends Identifiable, SOURCE> {
     /**
      * Returns rest representation for given entity based on uri info.
      * 
-     * @param uriInfo
-     *            uri target
      * @param source
      *            entity in db
      * @return rest representation
      */
-    REST from(UriInfo uriInfo, SOURCE source);
+    REST from(SOURCE source);
 
     /**
      * Returns a collection of rest data for given collection of db-data.
      * 
-     * @param uriInfo
-     *            uri target
      * @param sources
      *            collection of db entities
      * @return rest representation of given entities
      */
-    Collection<REST> from(UriInfo uriInfo, Collection<SOURCE> sources);
+    Collection<REST> from(Collection<SOURCE> sources);
 
     /**
      * Converts a rest representation (dto) into entity object.
      * 
-     * @param uriInfo
-     *            info from request
      * @param representation
      *            dto
      * @return entity object
      */
-    SOURCE to(UriInfo uriInfo, REST representation);
+    SOURCE to(REST representation);
 
     /**
      * Updates given entity with data from dto.
      * 
-     * @param uriInfo
-     *            info from request
      * @param representation
      *            dto
      * @param target
      *            entity to be updated
      * @return updated entity
      */
-    SOURCE update(UriInfo uriInfo, REST representation, SOURCE target);
+    SOURCE update(REST representation, SOURCE target);
 
-    Collection<SOURCE> to(UriInfo uriInfo, Collection<REST> representations);
+    Collection<SOURCE> to(Collection<REST> representations);
 
     /**
      * Base implementation for converter.
@@ -119,12 +109,12 @@ public interface RepresentationConverter<REST extends Identifiable, SOURCE> {
          * let it create a new instance.
          */
         @Override
-        public SOURCE to(UriInfo uriInfo, REST representation) {
+        public SOURCE to(REST representation) {
             Long id = representation.getId();
             if (id != null) {
                 return repo.get(id);
             } else {
-                return createNew(uriInfo, representation);
+                return createNew(representation);
             }
 
         }
@@ -132,13 +122,11 @@ public interface RepresentationConverter<REST extends Identifiable, SOURCE> {
         /**
          * Creates new instance of entity based on given representation.
          * 
-         * @param uriInfo
-         *            data from uri
          * @param representation
          *            dto
          * @return new instance of entity
          */
-        protected abstract SOURCE createNew(UriInfo uriInfo, REST representation);
+        protected abstract SOURCE createNew(REST representation);
 
         @Override
         public Class<REST> getRepresentationClass() {
@@ -151,19 +139,19 @@ public interface RepresentationConverter<REST extends Identifiable, SOURCE> {
         }
 
         @Override
-        public Collection<REST> from(UriInfo uriInfo, Collection<SOURCE> ins) {
+        public Collection<REST> from(Collection<SOURCE> ins) {
             Collection<REST> out = new ArrayList<REST>();
             for (SOURCE in : ins) {
-                out.add(from(uriInfo, in));
+                out.add(from(in));
             }
             return out;
         }
 
         @Override
-        public Collection<SOURCE> to(UriInfo uriInfo, Collection<REST> ins) {
+        public Collection<SOURCE> to(Collection<REST> ins) {
             Collection<SOURCE> out = new ArrayList<SOURCE>();
             for (REST in : ins) {
-                out.add(to(uriInfo, in));
+                out.add(to(in));
             }
             return out;
         }
