@@ -1,5 +1,7 @@
 package com.prodyna.pac.timtracker.persistence;
 
+import java.util.List;
+
 import javax.ejb.EJB;
 import javax.enterprise.context.ApplicationScoped;
 
@@ -30,6 +32,16 @@ public class BookingCdiDelegatorRepository implements Repository<Booking> {
     @Override
     public void remove(final Booking entity) {
         repo.remove(entity);
+    }
+
+    @Override
+    public List<Booking> getAll() {
+        return repo.getAll(); 
+    }
+
+    @Override
+    public List<Booking> getAllPaginated(int pageNumber, int pageSize) {
+        return repo.getAllPaginated(pageNumber, pageSize); 
     }
 
 }

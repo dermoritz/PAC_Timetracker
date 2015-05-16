@@ -1,5 +1,7 @@
 package com.prodyna.pac.timtracker.persistence;
 
+import java.util.List;
+
 /**
  * Defines operations on entities. Update is handled implicitly handled by
  * reading an entity and then updating its state. The peristence provide will
@@ -32,12 +34,30 @@ public interface Repository<T> {
      * @return entity
      */
     T get(Long id);
-    
+
     /**
      * Removes given entity.
-     * @param entity to be removed
+     * 
+     * @param entity
+     *            to be removed
      */
     void remove(T entity);
 
-    
+    /**
+     * 
+     * @return list with all entities.
+     */
+    List<T> getAll();
+
+    /**
+     * Used for paginbated queries. Parameter 2,10 will return entries from 11
+     * to 20.
+     * 
+     * @param pageNumber
+     *            number of page
+     * @param pageSize
+     *            entires per page
+     * @return list with all entries for given "page" and entries per page
+     */
+    List<T> getAllPaginated(int pageNumber, int pageSize);
 }

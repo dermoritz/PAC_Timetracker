@@ -1,5 +1,7 @@
 package com.prodyna.pac.timtracker.persistence;
 
+import java.util.List;
+
 import javax.ejb.EJB;
 import javax.enterprise.context.ApplicationScoped;
 
@@ -31,6 +33,16 @@ public class UserCdiDelegatorRepository implements Repository<User> {
     @Override
     public void remove(User entity) {
         repo.remove(entity);
+    }
+
+    @Override
+    public List<User> getAll() {
+        return repo.getAll(); 
+    }
+
+    @Override
+    public List<User> getAllPaginated(int pageNumber, int pageSize) {
+        return repo.getAllPaginated(pageNumber, pageSize); 
     }
     
 }
