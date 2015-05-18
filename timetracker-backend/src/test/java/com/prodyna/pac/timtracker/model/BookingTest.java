@@ -179,7 +179,8 @@ public class BookingTest {
      * @return
      */
     private UsersProjects createUp() {
-        return upRepository.store(new UsersProjects(new User("klaus", UserRole.USER),
-                                                    new Project("p1", "p1 d")));
+        long time = (new Date()).getTime();
+        return upRepository.store(new UsersProjects(new User("klaus" + time, UserRole.USER),
+                                                    new Project("p1" + time, "p1 d")));
     }
 }

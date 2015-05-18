@@ -14,6 +14,7 @@ import javax.validation.constraints.AssertFalse;
 import org.hamcrest.core.Is;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.arquillian.test.spi.annotation.TestScoped;
 import org.jboss.arquillian.transaction.api.annotation.TransactionMode;
 import org.jboss.arquillian.transaction.api.annotation.Transactional;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
@@ -29,6 +30,7 @@ import com.google.common.base.Strings;
 import com.prodyna.pac.timtracker.cdi.EntityManagerProducer;
 import com.prodyna.pac.timtracker.model.util.PersistenceArquillianContainer;
 import com.prodyna.pac.timtracker.persistence.BaseEntity;
+import com.prodyna.pac.timtracker.persistence.BaseEntity_;
 import com.prodyna.pac.timtracker.persistence.Created;
 import com.prodyna.pac.timtracker.persistence.EventRepositoryDecorator;
 import com.prodyna.pac.timtracker.persistence.Identifiable;
@@ -50,20 +52,22 @@ public class UserTest {
     @Deployment
     public static WebArchive createDeployment() {
         return PersistenceArquillianContainer.addClasses(User.class,
-                                              UserRole.class,
-                                              Repository.class,
-                                              PersistenceRepository.class,
-                                              Identifiable.class,
-                                              BaseEntity.class,
-                                              Timestampable.class,
-                                              UserRepository.class,
-                                              Strings.class,
-                                              Preconditions.class,
-                                              UserCdiDelegatorRepository.class,
-                                              EventRepositoryDecorator.class,
-                                              Created.class,
-                                              Removed.class,
-                                              EntityManagerProducer.class);
+                                                         User_.class,
+                                                         BaseEntity_.class,
+                                                         UserRole.class,
+                                                         Repository.class,
+                                                         PersistenceRepository.class,
+                                                         Identifiable.class,
+                                                         BaseEntity.class,
+                                                         Timestampable.class,
+                                                         UserRepository.class,
+                                                         Strings.class,
+                                                         Preconditions.class,
+                                                         UserCdiDelegatorRepository.class,
+                                                         EventRepositoryDecorator.class,
+                                                         Created.class,
+                                                         Removed.class,
+                                                         EntityManagerProducer.class);
     }
 
     /**
@@ -72,20 +76,23 @@ public class UserTest {
     @Inject
     private Repository<User> repository;
 
+    @Inject
+    private UserRepository userRepository;
+
     // these fields are static because Events observed by this TestClass
     // are not observed on the same TestClass instance as @Test is running.
     private static boolean createdFired = false;
     private static boolean removedFired = false;
-    
+
     /**
-     * Observes created events and set  the flag.
+     * Observes created events and set the flag.
      * 
      * @param user
      */
     public static void createdEventFired(@Observes @Created User user) {
         createdFired = true;
     }
-    
+
     /**
      * Observes removed event and sets a flag.
      * 
@@ -94,16 +101,16 @@ public class UserTest {
     public static void removedEventFired(@Observes @Removed User user) {
         removedFired = true;
     }
-    
+
     /**
      * Resets flags before each test.
      */
     @Before
-    public void before(){
+    public void before() {
         createdFired = false;
         removedFired = false;
     }
-    
+
     /**
      * Tests creation and peristing a user.
      */
@@ -114,7 +121,7 @@ public class UserTest {
         assertTrue(createdFired);
         assertNotNull(storedUser.getId());
     }
-    
+
     /**
      * Tests removal of a user.
      */
@@ -128,12 +135,12 @@ public class UserTest {
         User fetchedUser = repository.get(id);
         assertNull(fetchedUser);
     }
-    
+
     /**
      * Checks setting role.
      */
     @Test
-    public void setRole(){
+    public void setRole() {
         User user = repository.store(new User("sübülle", UserRole.MANAGER));
         Long id = user.getId();
         assertNotNull(id);
@@ -144,16 +151,31 @@ public class UserTest {
     }
     
     /**
+     * Checks query by name.
+     */
+    @Test
+    public void queryByName() {
+        String name = "sübrülle";
+        User user = repository.store(new User(name, UserRole.MANAGER));
+        Long id = user.getId();
+        assertNotNull(id);
+        //query should be case insensitive
+        User byName = userRepository.getByName(name.toUpperCase());
+        assertNotNull(byName);
+        assertThat(byName.getName(), is(name));
+    }
+
+    /**
      * to check exceptions.
      */
     @Rule
     public ExpectedException thrown = ExpectedException.none();
-    
+
     /**
      * Tests if exception is thrown if 2 users with same name are stored.
      */
     @Test
-    public void createNameClash(){
+    public void createNameClash() {
         thrown.expect(RuntimeException.class);
         thrown.expectMessage("Unable to commit the transaction.");
         String name = "OJ";
@@ -162,7 +184,7 @@ public class UserTest {
         repository.store(user1);
         repository.store(user2);
     }
-    
+
     /**
      * Checks exception thrown if role is null in constructor.
      */
@@ -172,7 +194,7 @@ public class UserTest {
         thrown.expectMessage("Role");
         new User("blub", null);
     }
-    
+
     /**
      * Checks exception if null role is set via setter.
      */
@@ -183,9 +205,9 @@ public class UserTest {
         thrown.expectMessage("Role");
         user.setRole(null);
     }
-    
+
     /**
-     * Checks exception on null/empty name. 
+     * Checks exception on null/empty name.
      */
     @Test
     public void nullOrEmptyName() {

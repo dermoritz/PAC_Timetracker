@@ -7,7 +7,6 @@ import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.prodyna.pac.timtracker.model.Booking;
-import com.prodyna.pac.timtracker.persistence.Identifiable;
 import com.prodyna.pac.timtracker.webapi.Linkable;
 import com.prodyna.pac.timtracker.webapi.resource.users_projects.UsersProjectsRepresentation;
 

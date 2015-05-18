@@ -8,6 +8,10 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
+import javax.persistence.metamodel.SingularAttribute;
+
+import com.prodyna.pac.timtracker.model.User;
+import com.prodyna.pac.timtracker.model.User_;
 
 /**
  * Abstract implementation of {@link Repository} using JPA.
@@ -22,7 +26,7 @@ public abstract class PersistenceRepository<T> implements Repository<T> {
      * Entity manager - provides JPA.
      */
     @Inject
-    private EntityManager em;
+    protected EntityManager em;
 
     /**
      * Type of this entity.
@@ -81,7 +85,21 @@ public abstract class PersistenceRepository<T> implements Repository<T> {
         allQuery.setMaxResults(pageSize);
         return allQuery.getResultList();
     }
-
+    
+    /**
+     * Performs a case insensitive query for given attribute and value. 
+     * @param attribute
+     * @param value
+     * @return
+     */
+    protected List<T> getByStringAttribute(SingularAttribute<? super T, String> attribute, String value){
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<T> query = cb.createQuery(getType());
+        Root<T> user = query.from(getType());
+        query.where(cb.equal(cb.lower(user.get(attribute)), value.toLowerCase()));
+        return em.createQuery(query).getResultList();
+    }
+    
     /**
      * Calls {@link EntityManager#merge(Object)} on given entity and returns it.
      * 
