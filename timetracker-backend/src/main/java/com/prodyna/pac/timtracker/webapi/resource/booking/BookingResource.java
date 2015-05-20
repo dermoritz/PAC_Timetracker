@@ -14,12 +14,12 @@ public class BookingResource extends RepositoryResource<Booking, BookingRepresen
     /**
      * User specific XML {@link MediaType}. 
      */
-    public static final String USER_XML_MEDIA_TYPE = MediaType.APPLICATION_XML + "; type=user";
+    public static final String BOOKING_XML_MEDIA_TYPE = MediaType.APPLICATION_XML + "; type=booking";
     
     /**
      * User specific JSON {@link MediaType}.
      */
-    public static final String USER_JSON_MEDIA_TYPE = MediaType.APPLICATION_JSON + "; type=user";
+    public static final String BOOKING_JSON_MEDIA_TYPE = MediaType.APPLICATION_JSON + "; type=booking";
     
     /**
      * Creates {@link RepositoryResource} typed for user.
@@ -30,12 +30,12 @@ public class BookingResource extends RepositoryResource<Booking, BookingRepresen
 
     @Override
     public String getResourceMediaType() {
-        return USER_XML_MEDIA_TYPE;
+        return BOOKING_XML_MEDIA_TYPE;
     }
 
     @Override
     protected String[] getMediaTypes() {
-        return new String[] {USER_XML_MEDIA_TYPE, USER_JSON_MEDIA_TYPE};
+        return new String[] {BOOKING_XML_MEDIA_TYPE, BOOKING_JSON_MEDIA_TYPE};
     }
 
 }

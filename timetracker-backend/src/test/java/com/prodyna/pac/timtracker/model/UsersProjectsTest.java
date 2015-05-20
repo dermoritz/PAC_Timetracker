@@ -51,7 +51,9 @@ public class UsersProjectsTest {
     @Deployment
     public static WebArchive createDeployment() {
         return PersistenceArquillianContainer.addClasses(Project.class,
+                                                         Project_.class,
                                                          User.class,
+                                                         User_.class,
                                                          UsersProjects.class,
                                                          UserRole.class,
                                                          Repository.class,

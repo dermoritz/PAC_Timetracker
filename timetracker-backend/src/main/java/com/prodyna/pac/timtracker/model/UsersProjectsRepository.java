@@ -9,6 +9,8 @@ import javax.ejb.TransactionAttributeType;
 import javax.enterprise.inject.Typed;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
 
 import com.prodyna.pac.timtracker.persistence.PersistenceRepository;
@@ -40,11 +42,7 @@ public class UsersProjectsRepository extends PersistenceRepository<UsersProjects
      * @return list of all projects registered to given user
      */
     public List<UsersProjects> getByUser(User user) {
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<UsersProjects> query = cb.createQuery(UsersProjects.class);
-        Root<UsersProjects> up = query.from(UsersProjects.class);
-        query.where(cb.equal(up.get(UsersProjects_.user), user));
-        return em.createQuery(query).getResultList();
+        return getByUserId(user.getId());
     }
 
     /**
@@ -54,10 +52,24 @@ public class UsersProjectsRepository extends PersistenceRepository<UsersProjects
      * @return list with all {@link UsersProjects} for a given project
      */
     public List<UsersProjects> getByProject(Project project) {
+        return getByProjectId(project.getId());
+    }
+
+    public List<UsersProjects> getByUserId(Long userId) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<UsersProjects> query = cb.createQuery(UsersProjects.class);
         Root<UsersProjects> up = query.from(UsersProjects.class);
-        query.where(cb.equal(up.get(UsersProjects_.project), project));
+        Join<UsersProjects, User> join = up.join(UsersProjects_.user, JoinType.INNER);
+        query.where(cb.equal(join.get(User_.id), userId));
+        return em.createQuery(query).getResultList();
+    }
+
+    public List<UsersProjects> getByProjectId(Long projectId) {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<UsersProjects> query = cb.createQuery(UsersProjects.class);
+        Root<UsersProjects> up = query.from(UsersProjects.class);
+        Join<UsersProjects, Project> join = up.join(UsersProjects_.project, JoinType.INNER);
+        query.where(cb.equal(join.get(Project_.id), projectId));
         return em.createQuery(query).getResultList();
     }
 

@@ -1,11 +1,17 @@
 package com.prodyna.pac.timtracker.webapi;
 
 import static com.jayway.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
@@ -21,7 +27,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.prodyna.pac.timtracker.model.Project;
 import com.prodyna.pac.timtracker.model.util.PersistenceArquillianContainer;
+import com.prodyna.pac.timtracker.webapi.resource.booking.BookingRepresentation;
 import com.prodyna.pac.timtracker.webapi.resource.project.ProjectRepresentation;
+import com.prodyna.pac.timtracker.webapi.resource.user.UserRepresentation;
+import com.prodyna.pac.timtracker.webapi.resource.users_projects.UsersProjectsRepresentation;
 
 /**
  * Tests rest api for project - {@link Project}
@@ -33,6 +42,12 @@ import com.prodyna.pac.timtracker.webapi.resource.project.ProjectRepresentation;
 public class ProjectResourceTest {
 
     private static final String PROJECT_PATH = "timetracker/project";
+
+    private static final String USER_PATH = "timetracker/user";
+
+    private static final String USERSPROJECTS_PATH = "timetracker/usersprojects";
+
+    private static final String BOOKING_PATH = "timetracker/booking";
 
     /**
      * testable is set to false because we do blackbox test. tests are conducted
@@ -50,54 +65,63 @@ public class ProjectResourceTest {
     private URL base;
 
     /**
-     * creates, retrieves, updates, deletes a project via rest api and xml media type.
+     * creates, retrieves, updates, deletes a project via rest api and xml media
+     * type.
+     * 
      * @throws MalformedURLException
      */
     @Test
     public void projectLifeCycleXml() throws MalformedURLException {
         projectLifeCycle(MediaType.APPLICATION_XML);
     }
-    
+
     /**
-     * creates, retrieves, updates, deletes a user via rest api and json media type.
+     * creates, retrieves, updates, deletes a user via rest api and json media
+     * type.
+     * 
      * @throws MalformedURLException
      */
     @Test
     public void projectLifeCycleJson() throws MalformedURLException {
         projectLifeCycle(MediaType.APPLICATION_JSON);
     }
-    
-    private void projectLifeCycle(String mediaType) throws MalformedURLException{
+
+    private void projectLifeCycle(String mediaType) throws MalformedURLException {
         ProjectRepresentation projectRep = new ProjectRepresentation();
         String pDescr = "blub";
         String pName = "P1";
         projectRep.setDescription(pDescr);
         projectRep.setName(pName);
-        //Store project
+        // Store project
         URL url = new URL(base, PROJECT_PATH);
         String uriProject = given().contentType(mediaType).body(projectRep)
-                                .then().statusCode(Status.CREATED.getStatusCode())
-                                .when().post(url)
-                                //store should return uri for stored object in location header
-                                .header("Location");
-        //retrieve the project by url returned on creation
-        ProjectRepresentation fetchedProject = given().then().contentType(mediaType).statusCode(Status.OK.getStatusCode())
-               .when().get(uriProject).body().as(ProjectRepresentation.class);
+                                   .then().statusCode(Status.CREATED.getStatusCode())
+                                   .when().post(url)
+                                   // store should return uri for stored object
+                                   // in location header
+                                   .header("Location");
+        // retrieve the project by url returned on creation
+        ProjectRepresentation fetchedProject = given().then().contentType(mediaType)
+                                                      .statusCode(Status.OK.getStatusCode())
+                                                      .when().get(uriProject).body().as(ProjectRepresentation.class);
         assertThat(fetchedProject.getName(), is(pName));
         assertThat(fetchedProject.getDescription(), is(pDescr));
-        //update project
+        // update project
         String newDescr = "newBlub";
         fetchedProject.setDescription(newDescr);
         given().contentType(mediaType).body(fetchedProject).
-        then().statusCode(Status.NO_CONTENT.getStatusCode()).when().put(uriProject);
-        //check update
-        ProjectRepresentation updatedProject = given().then().contentType(mediaType).statusCode(Status.OK.getStatusCode())
-        .when().get(uriProject).body().as(ProjectRepresentation.class);
+               then().statusCode(Status.NO_CONTENT.getStatusCode()).when().put(uriProject);
+        // check update
+        ProjectRepresentation updatedProject = given().then().contentType(mediaType)
+                                                      .statusCode(Status.OK.getStatusCode())
+                                                      .when().get(uriProject).body().as(ProjectRepresentation.class);
         assertThat(updatedProject.getDescription(), is(newDescr));
-        //delete project
+        // delete project
         given().then().statusCode(Status.NO_CONTENT.getStatusCode()).when().delete(uriProject);
-        //now fetching project should return 404
+        // now fetching project should return 404
         given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when().get(uriProject);
     }
+
+
 
 }

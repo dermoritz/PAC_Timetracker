@@ -1,5 +1,7 @@
 package com.prodyna.pac.timtracker.webapi;
 
+import java.util.Collection;
+
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -9,6 +11,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -37,8 +40,17 @@ import com.prodyna.pac.timtracker.persistence.Timestampable;
  *
  */
 public abstract class RepositoryResource<DOMAIN extends Identifiable & Timestampable, REP extends Identifiable>
-                                                                                                                          implements
-                                                                                                                          Resource {
+                                                                                                                implements
+                                                                                                                Resource {
+    /**
+     * Used for paginated fetch - page size parameter.
+     */
+    public static final String QUERY_PARAM_PAGE_SIZE = "pageSize";
+
+    /**
+     * Used for paginated fetch - page size parameter.
+     */
+    public static final String QUERY_PARAM_PAGE = "page";
 
     /**
      * Resource type.
@@ -172,6 +184,29 @@ public abstract class RepositoryResource<DOMAIN extends Identifiable & Timestamp
     }
 
     /**
+     * Retrieves all entities. If parameters are set (both > 0) output is paginated.
+     * 
+     * @param page
+     *            number of current page for paginated output
+     * @param pageSize
+     *            entities per page for paginated output
+     * @return list with all entities
+     */
+    @GET
+    @Path("/all")
+    @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
+    public Response getAll(@QueryParam(QUERY_PARAM_PAGE) Integer page, @QueryParam(QUERY_PARAM_PAGE_SIZE) Integer pageSize) {
+        // only if both parameters are given use paginated output
+        Collection<REP> results;
+        if (page != null && pageSize != null && page > 0 && pageSize > 0) {
+            results = getConverter().from(uriInfo, getRepository().getAllPaginated(page, pageSize));
+        } else {
+            results = getConverter().from(uriInfo, getRepository().getAll());
+        }
+        return Response.ok(results).type(getMediaType()).build();
+    }
+
+    /**
      * Updates the given object.
      * 
      * @param id
@@ -211,7 +246,7 @@ public abstract class RepositoryResource<DOMAIN extends Identifiable & Timestamp
      * 
      * @return media type
      */
-    private String getMediaType() {
+    protected String getMediaType() {
         // get types from child class
         String[] mediaTypes = getMediaTypes();
         if (mediaTypes.length < 1) {

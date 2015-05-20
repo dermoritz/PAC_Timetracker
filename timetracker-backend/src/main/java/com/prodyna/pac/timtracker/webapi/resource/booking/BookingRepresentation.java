@@ -83,6 +83,59 @@ public class BookingRepresentation extends Linkable {
     protected Class<?> getResourceClass() {
         return BookingResource.class; 
     }
+
+    @Override
+    public String toString() {
+        return "BookingRepresentation [getStart()=" + getStart() + ", getEnd()=" + getEnd() + ", getUsersProjects()="
+               + getUsersProjects() + ", getId()=" + getId() + ", getSelf()=" + getSelf() + "]";
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((end == null) ? 0 : end.hashCode());
+        result = prime * result + ((start == null) ? 0 : start.hashCode());
+        result = prime * result + ((usersProjects == null) ? 0 : usersProjects.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!super.equals(obj)) {
+            return false;
+        }
+        if (!(obj instanceof BookingRepresentation)) {
+            return false;
+        }
+        BookingRepresentation other = (BookingRepresentation) obj;
+        if (end == null) {
+            if (other.end != null) {
+                return false;
+            }
+        } else if (!end.equals(other.end)) {
+            return false;
+        }
+        if (start == null) {
+            if (other.start != null) {
+                return false;
+            }
+        } else if (!start.equals(other.start)) {
+            return false;
+        }
+        if (usersProjects == null) {
+            if (other.usersProjects != null) {
+                return false;
+            }
+        } else if (!usersProjects.equals(other.usersProjects)) {
+            return false;
+        }
+        return true;
+    }
+    
     
     
 }

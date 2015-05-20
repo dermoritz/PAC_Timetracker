@@ -1,13 +1,16 @@
 package com.prodyna.pac.timtracker.model;
 
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
@@ -28,6 +31,7 @@ import com.google.common.base.Strings;
 import com.prodyna.pac.timtracker.cdi.EntityManagerProducer;
 import com.prodyna.pac.timtracker.model.util.PersistenceArquillianContainer;
 import com.prodyna.pac.timtracker.persistence.BaseEntity;
+import com.prodyna.pac.timtracker.persistence.BaseEntity_;
 import com.prodyna.pac.timtracker.persistence.BookingCdiDelegatorRepository;
 import com.prodyna.pac.timtracker.persistence.Created;
 import com.prodyna.pac.timtracker.persistence.EventRepositoryDecorator;
@@ -50,25 +54,30 @@ public class BookingTest {
     @Deployment
     public static WebArchive createDeployment() {
         return PersistenceArquillianContainer.addClasses(Project.class,
-                                              User.class,
-                                              UsersProjects.class,
-                                              Booking.class,
-                                              UserRole.class,
-                                              BookingRepository.class,
-                                              BookingCdiDelegatorRepository.class,
-                                              UsersProjectsRepository.class,
-                                              UsersProjectsCdiDelegatorRepository.class,
-                                              Repository.class,
-                                              PersistenceRepository.class,
-                                              Identifiable.class,
-                                              BaseEntity.class,
-                                              Timestampable.class,
-                                              Strings.class,
-                                              Preconditions.class,
-                                              EventRepositoryDecorator.class,
-                                              Created.class,
-                                              Removed.class,
-                                              EntityManagerProducer.class);
+                                                         Project_.class,
+                                                         User.class,
+                                                         User_.class,
+                                                         UsersProjects.class,
+                                                         UsersProjects_.class,
+                                                         Booking.class,
+                                                         Booking_.class,
+                                                         UserRole.class,
+                                                         BookingRepository.class,
+                                                         BookingCdiDelegatorRepository.class,
+                                                         UsersProjectsRepository.class,
+                                                         UsersProjectsCdiDelegatorRepository.class,
+                                                         Repository.class,
+                                                         PersistenceRepository.class,
+                                                         Identifiable.class,
+                                                         BaseEntity.class,
+                                                         BaseEntity_.class,
+                                                         Timestampable.class,
+                                                         Strings.class,
+                                                         Preconditions.class,
+                                                         EventRepositoryDecorator.class,
+                                                         Created.class,
+                                                         Removed.class,
+                                                         EntityManagerProducer.class);
     }
 
     /**
@@ -76,6 +85,12 @@ public class BookingTest {
      */
     @Inject
     private Repository<Booking> repository;
+    
+    /**
+     * Special repo for booking needed for queries.
+     */
+    @Inject 
+    private BookingRepository bRepo;
 
     @Inject
     private Repository<UsersProjects> upRepository;
@@ -142,6 +157,93 @@ public class BookingTest {
         assertThat(storedBooking.getEnd(), is(newEnd));
     }
 
+    /**
+     * Creates booking of 2 diffrent user, and checks fetching by user.
+     */
+    @Test
+    public void fetchByUser() {
+        UsersProjects up1 = upRepository.store(new UsersProjects(new User("user1" + (new Date()).getTime(), UserRole.USER),
+                                                                 new Project("project 1" + (new Date()).getTime(), "p1")));
+        UsersProjects up2 = upRepository.store(new UsersProjects(new User("user2" + (new Date()).getTime(), UserRole.USER),
+                                                                 new Project("project 2" + (new Date()).getTime(), "p2")));
+        User user1 = up1.getUser();
+        User user2 = up2.getUser();
+        Project project2 = up2.getProject();
+        // register user 1 also to project 2
+        UsersProjects up3 = upRepository.store(new UsersProjects(user1, project2));
+        // create bookings
+        List<Booking> up1bookings = new ArrayList<>();
+        List<Booking> up2bookings = new ArrayList<>();
+        List<Booking> up3bookings = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            up1bookings.add(repository.store(new Booking(up1, new Date(i), new Date(i + 10000))));
+            up2bookings.add(repository.store(new Booking(up2, new Date(i), new Date(i + 10000))));
+            up3bookings.add(repository.store(new Booking(up3, new Date(i), new Date(i + 10000))));
+        }
+        //all bookings for user 1 now in up1bookings
+        up1bookings.addAll(up3bookings);
+        assertThat(bRepo.getBookingsByUser(user1), contains(up1bookings.toArray(new Booking[]{})));
+        assertThat(bRepo.getBookingsByUser(user2), contains(up2bookings.toArray(new Booking[]{})));
+    }
+
+    /**
+     * Creates booking of 2 diffrent user, and checks fetching by user.
+     */
+    @Test
+    public void fetchByProject() {
+        UsersProjects up1 = upRepository.store(new UsersProjects(new User("user1" + (new Date()).getTime(), UserRole.USER),
+                                                                 new Project("project 1" + (new Date()).getTime(), "p1")));
+        UsersProjects up2 = upRepository.store(new UsersProjects(new User("user2" + (new Date()).getTime(), UserRole.USER),
+                                                                 new Project("project 2" + (new Date()).getTime(), "p2")));
+        User user1 = up1.getUser();
+        Project project1 = up1.getProject();
+        Project project2 = up2.getProject();
+        // register user 1 also to project 2
+        UsersProjects up3 = upRepository.store(new UsersProjects(user1, project2));
+        // create bookings
+        List<Booking> up1bookings = new ArrayList<>();
+        List<Booking> up2bookings = new ArrayList<>();
+        List<Booking> up3bookings = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            up1bookings.add(repository.store(new Booking(up1, new Date(i), new Date(i + 10000))));
+            up2bookings.add(repository.store(new Booking(up2, new Date(i), new Date(i + 10000))));
+            up3bookings.add(repository.store(new Booking(up3, new Date(i), new Date(i + 10000))));
+        }
+        up2bookings.addAll(up3bookings);
+        //all bookings for project 2 now in up2bookings
+        assertThat(bRepo.getBookingsByProject(project1), contains(up1bookings.toArray(new Booking[]{})));
+        assertThat(bRepo.getBookingsByProject(project2), contains(up2bookings.toArray(new Booking[]{})));
+    }
+  
+    @Test
+    public void fetchByProjectId() {
+        UsersProjects up1 = upRepository.store(new UsersProjects(new User("user1" + (new Date()).getTime(), UserRole.USER),
+                                                                 new Project("project 1" + (new Date()).getTime(), "p1")));
+        UsersProjects up2 = upRepository.store(new UsersProjects(new User("user2" + (new Date()).getTime(), UserRole.USER),
+                                                                 new Project("project 2" + (new Date()).getTime(), "p2")));
+        User user1 = up1.getUser();
+        Project project1 = up1.getProject();
+        Project project2 = up2.getProject();
+        // register user 1 also to project 2
+        UsersProjects up3 = upRepository.store(new UsersProjects(user1, project2));
+        // create bookings
+        List<Booking> up1bookings = new ArrayList<>();
+        List<Booking> up2bookings = new ArrayList<>();
+        List<Booking> up3bookings = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            up1bookings.add(repository.store(new Booking(up1, new Date(i), new Date(i + 10000))));
+            up2bookings.add(repository.store(new Booking(up2, new Date(i), new Date(i + 10000))));
+            up3bookings.add(repository.store(new Booking(up3, new Date(i), new Date(i + 10000))));
+        }
+        up2bookings.addAll(up3bookings);
+        //all bookings for project 2 now in up2bookings
+        List<Booking> up1fetchedBookings = bRepo.getBookingsByProjectId(project1.getId());
+        List<Booking> up2fetchedBookings = bRepo.getBookingsByProjectId(project2.getId());
+        assertThat(up1fetchedBookings, contains(up1bookings.toArray(new Booking[]{})));
+        assertThat(up2fetchedBookings, contains(up2bookings.toArray(new Booking[]{})));
+    }
+    
+    
     /**
      * Rule to check exceptions.
      */

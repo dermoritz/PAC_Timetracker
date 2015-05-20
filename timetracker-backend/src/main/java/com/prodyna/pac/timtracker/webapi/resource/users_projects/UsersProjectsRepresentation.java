@@ -67,7 +67,48 @@ public class UsersProjectsRepresentation extends Linkable {
         return UsersProjectsResource.class; 
     }
 
-   
-    
-    
+    @Override
+    public String toString() {
+        return "UsersProjectsRepresentation [getUser()=" + getUser() + ", getProject()=" + getProject() + ", getId()="
+               + getId() + ", getSelf()=" + getSelf() + "]";
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = super.hashCode();
+        result = prime * result + ((project == null) ? 0 : project.hashCode());
+        result = prime * result + ((user == null) ? 0 : user.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (!super.equals(obj)) {
+            return false;
+        }
+        if (!(obj instanceof UsersProjectsRepresentation)) {
+            return false;
+        }
+        UsersProjectsRepresentation other = (UsersProjectsRepresentation) obj;
+        if (project == null) {
+            if (other.project != null) {
+                return false;
+            }
+        } else if (!project.equals(other.project)) {
+            return false;
+        }
+        if (user == null) {
+            if (other.user != null) {
+                return false;
+            }
+        } else if (!user.equals(other.user)) {
+            return false;
+        }
+        return true;
+    }
+
 }
