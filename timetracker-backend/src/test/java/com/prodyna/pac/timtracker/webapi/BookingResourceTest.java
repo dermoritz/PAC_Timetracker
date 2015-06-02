@@ -17,18 +17,21 @@ import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.persistence.Cleanup;
 import org.jboss.arquillian.persistence.TestExecutionPhase;
 import org.jboss.arquillian.test.api.ArquillianResource;
+import org.jboss.shrinkwrap.api.Filters;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.prodyna.pac.timtracker.cdi.CurrentUserProducer;
 import com.prodyna.pac.timtracker.model.Booking;
 import com.prodyna.pac.timtracker.model.util.PersistenceArquillianContainer;
 import com.prodyna.pac.timtracker.webapi.resource.booking.BookingRepresentation;
 import com.prodyna.pac.timtracker.webapi.resource.project.ProjectRepresentation;
 import com.prodyna.pac.timtracker.webapi.resource.user.UserRepresentation;
 import com.prodyna.pac.timtracker.webapi.resource.users_projects.UsersProjectsRepresentation;
+import com.prodyna.pac.timtracker.webapi.util.TestUserAdmin;
 
 /**
  * Tests rest api for user - {@link Booking}.
@@ -51,8 +54,11 @@ public class BookingResourceTest {
      */
     @Deployment(testable = false)
     public static WebArchive deploy() {
-        return PersistenceArquillianContainer.get().addPackages(true, "com.prodyna.pac.timtracker")
-                                             .addClasses(Strings.class, Preconditions.class);
+        return PersistenceArquillianContainer.get()
+                                             .addPackages(true,
+                                                          Filters.exclude(CurrentUserProducer.class),
+                                                          "com.prodyna.pac.timtracker")
+                                             .addClasses(Strings.class, Preconditions.class, TestUserAdmin.class);
     }
 
     @ArquillianResource

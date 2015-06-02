@@ -144,6 +144,8 @@ public class ProjectTest {
         assertNotNull(id);
         Project byName = projectRepository.getByName(name);
         assertNotNull(byName);
+        //delete project
+        repository.remove(storedProject);
     }
 
     /**

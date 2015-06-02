@@ -1,38 +1,32 @@
 package com.prodyna.pac.timtracker.webapi;
 
 import static com.jayway.restassured.RestAssured.given;
-import static org.junit.Assert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertThat;
 
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
-import org.hamcrest.core.Is;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
+import org.jboss.shrinkwrap.api.Filters;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableMap;
-import com.jayway.restassured.response.Response;
+import com.prodyna.pac.timtracker.cdi.CurrentUserProducer;
 import com.prodyna.pac.timtracker.model.UserRole;
 import com.prodyna.pac.timtracker.model.util.PersistenceArquillianContainer;
 import com.prodyna.pac.timtracker.webapi.resource.user.UserRepresentation;
 import com.prodyna.pac.timtracker.webapi.resource.user.UserResource;
+import com.prodyna.pac.timtracker.webapi.util.TestUserAdmin;
 
 /**
  * Tests rest api for user - {@link UserResource}
@@ -53,8 +47,11 @@ public class UserResourceTest {
      */
     @Deployment(testable = false)
     public static WebArchive deploy() {
-        return PersistenceArquillianContainer.get().addPackages(true, "com.prodyna.pac.timtracker")
-                                             .addClasses(Strings.class, Preconditions.class);
+        return PersistenceArquillianContainer.get()
+                                             .addPackages(true,
+                                                          Filters.exclude(CurrentUserProducer.class),
+                                                          "com.prodyna.pac.timtracker")
+                                             .addClasses(Strings.class, Preconditions.class, TestUserAdmin.class);
     }
 
     @ArquillianResource
@@ -80,6 +77,21 @@ public class UserResourceTest {
     @Test
     public void userLifeCycleJson() throws MalformedURLException {
         userLifeCycle(MediaType.APPLICATION_JSON);
+    }
+
+    /**
+     * tries to get current user - should be come from {@link TestUserAdmin}.
+     * 
+     * @throws MalformedURLException
+     */
+    @Test
+    public void getCurrent() throws MalformedURLException {
+        URL currenUserUrl = new URL(base, USER_PATH + "/current");
+        UserRepresentation cUser = given().contentType(MediaType.APPLICATION_JSON).then()
+                                          .statusCode(Status.OK.getStatusCode()).when().get(currenUserUrl).body()
+                                          .as(UserRepresentation.class);
+        assertThat(cUser.getName(), is(TestUserAdmin.USER_NAME_STRING));
+        assertThat(UserRole.valueOf(cUser.getRole()), is(UserRole.ADMIN));
     }
 
     private void userLifeCycle(String mediaType) throws MalformedURLException {

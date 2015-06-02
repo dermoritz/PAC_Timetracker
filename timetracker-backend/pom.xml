@@ -9,11 +9,7 @@
 		<version>0.0.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>timetracker-backend</artifactId>
-	<packaging>ejb</packaging>
-	<properties>
-		<ejb-plugin-version>2.5</ejb-plugin-version>
-		<ejb-spec-version>3.2</ejb-spec-version>
-	</properties>
+	<packaging>war</packaging>
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -96,13 +92,6 @@
 	</dependencies>
 	<build>
 		<plugins>
-			<plugin>
-				<artifactId>maven-ejb-plugin</artifactId>
-				<version>${ejb-plugin-version}</version>
-				<configuration>
-					<ejbVersion>${ejb-spec-version}</ejbVersion>
-				</configuration>
-			</plugin>
 			<plugin>
 				<groupId>org.bsc.maven</groupId>
 				<artifactId>maven-processor-plugin</artifactId>

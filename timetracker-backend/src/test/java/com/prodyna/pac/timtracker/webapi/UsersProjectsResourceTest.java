@@ -13,6 +13,7 @@ import javax.ws.rs.core.Response.Status;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
+import org.jboss.shrinkwrap.api.Filters;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -24,11 +25,13 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.DecoderConfig;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.config.RestAssuredConfig;
+import com.prodyna.pac.timtracker.cdi.CurrentUserProducer;
 import com.prodyna.pac.timtracker.model.util.PersistenceArquillianContainer;
 import com.prodyna.pac.timtracker.webapi.resource.project.ProjectRepresentation;
 import com.prodyna.pac.timtracker.webapi.resource.user.UserRepresentation;
 import com.prodyna.pac.timtracker.webapi.resource.user.UserResource;
 import com.prodyna.pac.timtracker.webapi.resource.users_projects.UsersProjectsRepresentation;
+import com.prodyna.pac.timtracker.webapi.util.TestUserAdmin;
 
 /**
  * Tests rest api for user - {@link UserResource}
@@ -49,17 +52,22 @@ public class UsersProjectsResourceTest {
      */
     @Deployment(testable = false)
     public static WebArchive deploy() {
-        return PersistenceArquillianContainer.get().addPackages(true, "com.prodyna.pac.timtracker")
-                                             .addClasses(Strings.class, Preconditions.class);
+        return PersistenceArquillianContainer.get()
+                                             .addPackages(true,
+                                                          Filters.exclude(CurrentUserProducer.class),
+                                                          "com.prodyna.pac.timtracker")
+                                             .addClasses(Strings.class, Preconditions.class, TestUserAdmin.class);
     }
-    
+
     @BeforeClass
-    public static void config(){
+    public static void config() {
         RestAssured.config = new RestAssuredConfig();
-        RestAssured.config = RestAssured.config.encoderConfig(EncoderConfig.encoderConfig().defaultContentCharset("UTF-8"));
-        RestAssured.config = RestAssured.config.decoderConfig(DecoderConfig.decoderConfig().defaultContentCharset("UTF-8"));
+        RestAssured.config = RestAssured.config.encoderConfig(EncoderConfig.encoderConfig()
+                                                                           .defaultContentCharset("UTF-8"));
+        RestAssured.config = RestAssured.config.decoderConfig(DecoderConfig.decoderConfig()
+                                                                           .defaultContentCharset("UTF-8"));
     }
-    
+
     @ArquillianResource
     private URL base;
 
@@ -100,7 +108,7 @@ public class UsersProjectsResourceTest {
         UsersProjectsRepresentation upRep = new UsersProjectsRepresentation();
         upRep.setProject(projectRep);
         upRep.setUser(xmlUser);
-        
+
         URL url = new URL(base, USERSPROJECTS_PATH);
         String uriUsersProject = given().contentType(MediaType.APPLICATION_JSON).body(upRep)
                                         .then().statusCode(Status.CREATED.getStatusCode())

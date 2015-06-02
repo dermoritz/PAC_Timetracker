@@ -6,6 +6,7 @@ import java.util.Collection;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
+import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -19,6 +20,8 @@ import com.prodyna.pac.timtracker.model.Booking;
 import com.prodyna.pac.timtracker.model.BookingRepository;
 import com.prodyna.pac.timtracker.model.Project;
 import com.prodyna.pac.timtracker.model.ProjectRepository;
+import com.prodyna.pac.timtracker.model.User;
+import com.prodyna.pac.timtracker.model.UserRole;
 import com.prodyna.pac.timtracker.webapi.RepositoryResource;
 import com.prodyna.pac.timtracker.webapi.RepresentationConverter;
 import com.prodyna.pac.timtracker.webapi.resource.booking.BookingRepresentation;
@@ -97,7 +100,7 @@ public class ProjectResource extends RepositoryResource<Project, ProjectRepresen
         return Response.ok(new GenericEntity<Collection<BookingRepresentation>>(bookings) {/**/
         }).type(getMediaType()).build();
     }
-    
+
     /**
      * fetches project by name (case insensitive).
      * 
@@ -117,5 +120,56 @@ public class ProjectResource extends RepositoryResource<Project, ProjectRepresen
                        .type(getMediaType())
                        .lastModified(project.getLastModified())
                        .build();
+    }
+
+    @Override
+    public boolean permit(User user, String url, String method) {
+        boolean result = super.permit(user, url, method);
+        switch (method) {
+        case HttpMethod.POST:
+            // admins or managers are permitted to create projects
+            if (user.getRole().equals(UserRole.ADMIN) || user.getRole().equals(UserRole.MANAGER)) {
+                result = true;
+            } else {
+                result = false;
+            }
+            break;
+        case HttpMethod.DELETE:
+            // admins or managers are permitted to delete projects
+            if (user.getRole().equals(UserRole.ADMIN) || user.getRole().equals(UserRole.MANAGER)) {
+                result = true;
+            } else {
+                result = false;
+            }
+            break;
+        case HttpMethod.GET:
+            // check what kind of get
+            // get all bookings for project
+            if (url.contains("bookings")) {
+                // all bookings are only visible by managers and admins
+                if (user.getRole().equals(UserRole.MANAGER) || user.getRole().equals(UserRole.ADMIN)) {
+                    result = true;
+                } else {
+                    result = false;
+                }
+            }
+            // get by name and by id is permitted to all
+            else {
+                // delegate to overrode get
+                result = true;
+            }
+            break;
+        case HttpMethod.PUT:
+            // admins or managers are permitted to update projects
+            if (user.getRole().equals(UserRole.ADMIN) || user.getRole().equals(UserRole.MANAGER)) {
+                result = true;
+            } else {
+                result = false;
+            }
+            break;
+        default:
+            break;
+        }
+        return result;
     }
 }

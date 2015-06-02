@@ -22,9 +22,13 @@ import javax.ws.rs.core.UriInfo;
 
 import org.slf4j.Logger;
 
+import com.prodyna.pac.timtracker.cdi.CurrentUser;
+import com.prodyna.pac.timtracker.model.User;
+import com.prodyna.pac.timtracker.model.UserRole;
 import com.prodyna.pac.timtracker.persistence.Identifiable;
 import com.prodyna.pac.timtracker.persistence.Repository;
 import com.prodyna.pac.timtracker.persistence.Timestampable;
+import com.prodyna.pac.timtracker.webapi.security.SecureResource;
 
 /**
  * Abstraction for model entities exposed via rest as resources.
@@ -41,7 +45,13 @@ import com.prodyna.pac.timtracker.persistence.Timestampable;
  */
 public abstract class RepositoryResource<DOMAIN extends Identifiable & Timestampable, REP extends Identifiable>
                                                                                                                 implements
-                                                                                                                Resource {
+                                                                                                                Resource,
+                                                                                                                SecureResource {
+    /**
+     * Path to request all.
+     */
+    public static final String ALL_SUFFIX = "/all";
+
     /**
      * Used for paginated fetch - page size parameter.
      */
@@ -81,6 +91,10 @@ public abstract class RepositoryResource<DOMAIN extends Identifiable & Timestamp
 
     @Inject
     private Logger log;
+
+    @Inject
+    @CurrentUser
+    private User currentUser;
 
     /**
      * Needed by CDI
@@ -184,7 +198,8 @@ public abstract class RepositoryResource<DOMAIN extends Identifiable & Timestamp
     }
 
     /**
-     * Retrieves all entities. If parameters are set (both > 0) output is paginated.
+     * Retrieves all entities. If parameters are set (both > 0) output is
+     * paginated.
      * 
      * @param page
      *            number of current page for paginated output
@@ -193,9 +208,10 @@ public abstract class RepositoryResource<DOMAIN extends Identifiable & Timestamp
      * @return list with all entities
      */
     @GET
-    @Path("/all")
+    @Path(ALL_SUFFIX)
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response getAll(@QueryParam(QUERY_PARAM_PAGE) Integer page, @QueryParam(QUERY_PARAM_PAGE_SIZE) Integer pageSize) {
+    public Response getAll(@QueryParam(QUERY_PARAM_PAGE) Integer page,
+                           @QueryParam(QUERY_PARAM_PAGE_SIZE) Integer pageSize) {
         // only if both parameters are given use paginated output
         Collection<REP> results;
         if (page != null && pageSize != null && page > 0 && pageSize > 0) {
@@ -266,4 +282,35 @@ public abstract class RepositoryResource<DOMAIN extends Identifiable & Timestamp
         }
         return result;
     }
+
+    /**
+     * {@link UserRole#ADMIN} is allowed to do all. False is returned for all
+     * other roles - should be overwritten if needed.
+     */
+    @Override
+    public boolean permit(User user, String url, String method) {
+        // admin is allowed to do all
+        if (user.getRole().equals(UserRole.ADMIN)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 
+     * @param userId
+     *            user id used in request.
+     * @return true if current user is manager OR admin OR given id is it's own
+     *         id.
+     */
+    public boolean ownManagerOrAdmin(Long userId) {
+        return currentUser.getId().equals(userId) || currentUser.getRole().equals(UserRole.MANAGER)
+               || currentUser.getRole().equals(UserRole.ADMIN);
+    }
+    
+    public boolean ownManagerOrAdmin(String userName) {
+        return currentUser.getName().equals(userName) || currentUser.getRole().equals(UserRole.MANAGER)
+               || currentUser.getRole().equals(UserRole.ADMIN);
+    }
+
 }

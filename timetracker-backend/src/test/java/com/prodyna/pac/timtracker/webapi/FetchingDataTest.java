@@ -19,6 +19,7 @@ import javax.ws.rs.core.Response.Status;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
+import org.jboss.shrinkwrap.api.Filters;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -28,11 +29,13 @@ import org.junit.runner.RunWith;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
+import com.prodyna.pac.timtracker.cdi.CurrentUserProducer;
 import com.prodyna.pac.timtracker.model.util.PersistenceArquillianContainer;
 import com.prodyna.pac.timtracker.webapi.resource.booking.BookingRepresentation;
 import com.prodyna.pac.timtracker.webapi.resource.project.ProjectRepresentation;
 import com.prodyna.pac.timtracker.webapi.resource.user.UserRepresentation;
 import com.prodyna.pac.timtracker.webapi.resource.users_projects.UsersProjectsRepresentation;
+import com.prodyna.pac.timtracker.webapi.util.TestUserAdmin;
 
 /**
  * This concentrates all tests about fetching/ querying different kinds of data.
@@ -61,8 +64,11 @@ public class FetchingDataTest {
      */
     @Deployment(testable = false)
     public static WebArchive deploy() {
-        return PersistenceArquillianContainer.get().addPackages(true, "com.prodyna.pac.timtracker")
-                                             .addClasses(Strings.class, Preconditions.class);
+        return PersistenceArquillianContainer.get()
+                                             .addPackages(true,
+                                                          Filters.exclude(CurrentUserProducer.class),
+                                                          "com.prodyna.pac.timtracker")
+                                             .addClasses(Strings.class, Preconditions.class, TestUserAdmin.class);
     }
 
     @ArquillianResource
@@ -71,6 +77,8 @@ public class FetchingDataTest {
     private static boolean dataCreated = false;
 
     private static List<UserRepresentation> users;
+    
+    private static List<ProjectRepresentation> projects;
 
     /**
      * Creates data once for multiple tests. Bad style (accessing static fields
@@ -81,6 +89,7 @@ public class FetchingDataTest {
     public void createDataOnce() {
         if (!dataCreated) {
             users = createSomeUsers(20);
+            projects = createSomeProjects(20);
             dataCreated = true;
         }
     }
@@ -88,8 +97,8 @@ public class FetchingDataTest {
     @Test
     public void getBookingsForProjectAndUser() throws MalformedURLException {
         // create 2 projects
-        ProjectRepresentation p1 = createProject();
-        ProjectRepresentation p2 = createProject();
+        ProjectRepresentation p1 = projects.get(0);
+        ProjectRepresentation p2 = projects.get(1);
         UserRepresentation u = users.get(0);
         UsersProjectsRepresentation up1 = createUP(u, p1);
         UsersProjectsRepresentation up2 = createUP(u, p2);
@@ -123,7 +132,7 @@ public class FetchingDataTest {
 
     @Test
     public void getProjectByName() throws MalformedURLException {
-        ProjectRepresentation project = createProject();
+        ProjectRepresentation project = projects.get(0);
         URL url = new URL(base, PROJECT_PATH + "/name/" + project.getName());
         ProjectRepresentation fetchedProject = given().then().contentType(MediaType.APPLICATION_JSON)
                                                       .statusCode(Status.OK.getStatusCode()).when()
@@ -137,9 +146,9 @@ public class FetchingDataTest {
         UserRepresentation user = users.get(0);
         URL url = new URL(base, USER_PATH + "/name/" + user.getName());
         UserRepresentation fetchedProject = given().then().contentType(MediaType.APPLICATION_JSON)
-                                                      .statusCode(Status.OK.getStatusCode()).when()
-                                                      .get(url).body()
-                                                      .as(UserRepresentation.class);
+                                                   .statusCode(Status.OK.getStatusCode()).when()
+                                                   .get(url).body()
+                                                   .as(UserRepresentation.class);
         assertThat(fetchedProject, is(user));
     }
 
@@ -151,11 +160,11 @@ public class FetchingDataTest {
     @Test
     public void fetchAll() throws MalformedURLException {
         // fetch list via rest
-        URL allUserUrl = new URL(base, USER_PATH + "/all");
-        UserRepresentation[] fetchedUsers = given().then().contentType(MediaType.APPLICATION_JSON)
-                                                   .statusCode(Status.OK.getStatusCode()).when().get(allUserUrl).body()
-                                                   .as(UserRepresentation[].class);
-        assertThat(Arrays.asList(fetchedUsers), containsInAnyOrder(users.toArray()));
+        URL allProjectsUrl = new URL(base, PROJECT_PATH + "/all");
+        ProjectRepresentation[] fetchedProjects = given().then().contentType(MediaType.APPLICATION_JSON)
+                                                   .statusCode(Status.OK.getStatusCode()).when().get(allProjectsUrl).body()
+                                                   .as(ProjectRepresentation[].class);
+        assertThat(Arrays.asList(fetchedProjects), containsInAnyOrder(projects.toArray()));
     }
 
     /**
@@ -165,31 +174,82 @@ public class FetchingDataTest {
      */
     @Test
     public void fetchAllPaginated() throws MalformedURLException {
-        int userCount = users.size();
-        URL allUserUrl = new URL(base, USER_PATH + "/all");
+        int projectCount = projects.size();
+        URL allProjectsUrl = new URL(base, PROJECT_PATH + "/all");
         // fetch list via rest - select page 3 with page size 7
         int page = 3;
         int pageSize = 7;
-        UserRepresentation[] fetchedUsers = given().queryParams(ImmutableMap.of(RepositoryResource.QUERY_PARAM_PAGE,
+        ProjectRepresentation[] fetchedProjects = given().queryParams(ImmutableMap.of(RepositoryResource.QUERY_PARAM_PAGE,
                                                                                 page,
                                                                                 RepositoryResource.QUERY_PARAM_PAGE_SIZE,
                                                                                 pageSize))
                                                    .then().contentType(MediaType.APPLICATION_JSON)
-                                                   .statusCode(Status.OK.getStatusCode()).when().get(allUserUrl).body()
-                                                   .as(UserRepresentation[].class);
+                                                   .statusCode(Status.OK.getStatusCode()).when().get(allProjectsUrl).body()
+                                                   .as(ProjectRepresentation[].class);
         // page 3 should contain indexes 14..19 (6 entries)
         // sublist's upper bound is exclusive - so userCount will work
-        assertThat(Arrays.asList(fetchedUsers),
-                   containsInAnyOrder(users.subList(14, userCount).toArray(new UserRepresentation[] {})));
+        assertThat(Arrays.asList(fetchedProjects),
+                   containsInAnyOrder(projects.subList(14, projectCount).toArray(new ProjectRepresentation[] {})));
     }
-    
+
     @Test
-    public void fetchUsersProjectsByUser(){
+    public void fetchUsersProjectsByUser() throws MalformedURLException {
         UserRepresentation user1 = createUser();
         UserRepresentation user2 = createUser();
-        
+        List<UsersProjectsRepresentation> upUser1 = new ArrayList<>();
+        for (int i = 0; i < 17; i++) {
+            upUser1.add(createUP(user1 , projects.get(i)));
+        }
+        List<UsersProjectsRepresentation> upUser2 = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            upUser2.add(createUP(user2 , projects.get(i)));
+        }
+        URL user1url = new URL(base, USERSPROJECTS_PATH + "/user/" + user1.getId());
+        UsersProjectsRepresentation[] user1projects = given().then().contentType(MediaType.APPLICATION_JSON)
+                                                             .statusCode(Status.OK.getStatusCode()).when()
+                                                             .get(user1url).body()
+                                                             .as(UsersProjectsRepresentation[].class);
+        assertThat(Arrays.asList(user1projects),
+                   containsInAnyOrder(upUser1.toArray(new UsersProjectsRepresentation[] {})));
+        URL user2url = new URL(base, USERSPROJECTS_PATH + "/user/" + user2.getId());
+        UsersProjectsRepresentation[] user2projects = given().then().contentType(MediaType.APPLICATION_JSON)
+                                                             .statusCode(Status.OK.getStatusCode()).when()
+                                                             .get(user2url).body()
+                                                             .as(UsersProjectsRepresentation[].class);
+        assertThat(Arrays.asList(user2projects),
+                   containsInAnyOrder(upUser2.toArray(new UsersProjectsRepresentation[] {})));
     }
-    
+
+    @Test
+    public void fetchUsersProjectsByProject() throws MalformedURLException {
+        //use different projects than in fetchUsersProjectsByUser
+        ProjectRepresentation p1 = projects.get(17);
+        ProjectRepresentation p2 = projects.get(18);
+
+        List<UsersProjectsRepresentation> upP1 = new ArrayList<>();
+        for (int i = 0; i < 17; i++) {
+            upP1.add(createUP(createUser(), p1));
+        }
+        List<UsersProjectsRepresentation> upP2 = new ArrayList<>();
+        for (int i = 0; i < 5; i++) {
+            upP2.add(createUP(createUser(), p2));
+        }
+        URL user1url = new URL(base, USERSPROJECTS_PATH + "/project/" + p1.getId());
+        UsersProjectsRepresentation[] p1projects = given().then().contentType(MediaType.APPLICATION_JSON)
+                                                          .statusCode(Status.OK.getStatusCode()).when()
+                                                          .get(user1url).body()
+                                                          .as(UsersProjectsRepresentation[].class);
+        assertThat(Arrays.asList(p1projects),
+                   containsInAnyOrder(upP1.toArray(new UsersProjectsRepresentation[] {})));
+        URL user2url = new URL(base, USERSPROJECTS_PATH + "/project/" + p2.getId());
+        UsersProjectsRepresentation[] p2projects = given().then().contentType(MediaType.APPLICATION_JSON)
+                                                          .statusCode(Status.OK.getStatusCode()).when()
+                                                          .get(user2url).body()
+                                                          .as(UsersProjectsRepresentation[].class);
+        assertThat(Arrays.asList(p2projects),
+                   containsInAnyOrder(upP2.toArray(new UsersProjectsRepresentation[] {})));
+    }
+
     private List<UserRepresentation> createSomeUsers(int userCount) {
         List<UserRepresentation> result = new ArrayList<>();
         for (int i = 0; i < userCount; i++) {
@@ -198,6 +258,14 @@ public class FetchingDataTest {
         return result;
     }
     
+    private List<ProjectRepresentation> createSomeProjects(int projectCount) {
+        List<ProjectRepresentation> result = new ArrayList<>();
+        for (int i = 0; i < projectCount; i++) {
+            result.add(createProject());
+        }
+        return result;
+    }
+
     /**
      * creates and stores a random project (name is uuid)
      * 
