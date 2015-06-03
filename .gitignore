@@ -8,3 +8,7 @@ timetracker-backend/.classpath
 timetracker-backend/.checkstyle
 timetracker-web/.classpath
 *.checkstyle
+.idea/
+timetracker.iml
+timetracker-backend/timetracker-backend.iml
+timetracker-web/timetracker-web.iml

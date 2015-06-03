@@ -7,6 +7,8 @@ import javax.enterprise.inject.Produces;
 import javax.inject.Inject;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.ext.ContextResolver;
+import javax.ws.rs.ext.Provider;
 
 import org.slf4j.Logger;
 
@@ -23,7 +25,8 @@ import com.prodyna.pac.timtracker.model.UserRole;
  *
  */
 @RequestScoped
-public class CurrentUserProducer implements Serializable {
+@Provider
+public class CurrentUserProducer implements Serializable, ContextResolver<User> {
 
     /**
      * Default
@@ -73,6 +76,14 @@ public class CurrentUserProducer implements Serializable {
             log.debug("Detected login of known user: " + user);
         }
         return user;
+    }
+
+    @Override
+    public User getContext(Class<?> type) {
+        if (type.equals(User.class)){
+            return getCurrentUser();
+        }
+        return null;
     }
 
 }

@@ -43,32 +43,21 @@ public class BookingResource extends RepositoryResource<Booking, BookingRepresen
     @Inject
     private BookingRepository bookingRepo;
 
-    /**
-     * User specific XML {@link MediaType}.
-     */
-    public static final String BOOKING_XML_MEDIA_TYPE = MediaType.APPLICATION_XML + "; type=booking";
-
-    /**
-     * User specific JSON {@link MediaType}.
-     */
-    public static final String BOOKING_JSON_MEDIA_TYPE = MediaType.APPLICATION_JSON + "; type=booking";
-
+    private static final String MEDIA_SUBTYPE = "; type=booking";
+    
     /**
      * Creates {@link RepositoryResource} typed for user.
      */
     public BookingResource() {
         super(BookingResource.class, Booking.class, BookingRepresentation.class);
     }
+    
 
     @Override
-    public String getResourceMediaType() {
-        return BOOKING_XML_MEDIA_TYPE;
+    protected String getMediaSupType() {
+        return MEDIA_SUBTYPE;
     }
 
-    @Override
-    protected String[] getMediaTypes() {
-        return new String[] {BOOKING_XML_MEDIA_TYPE, BOOKING_JSON_MEDIA_TYPE};
-    }
 
     /**
      * 
@@ -91,7 +80,7 @@ public class BookingResource extends RepositoryResource<Booking, BookingRepresen
         Collection<BookingRepresentation> bookings = getConverter().from(getUriInfo(),
                                                                          bookingRepo.getBookingsByUserId(userId));
         return Response.ok(new GenericEntity<Collection<BookingRepresentation>>(bookings) {/**/
-        }).type(getMediaType()).build();
+        }).type(getResourceMediaType()).build();
     }
 
     /**
@@ -115,7 +104,7 @@ public class BookingResource extends RepositoryResource<Booking, BookingRepresen
         Collection<BookingRepresentation> bookings = getConverter().from(getUriInfo(),
                                                                          bookingRepo.getBookingsByProjectId(projectId));
         return Response.ok(new GenericEntity<Collection<BookingRepresentation>>(bookings) {/**/
-        }).type(getMediaType()).build();
+        }).type(getResourceMediaType()).build();
     }
 
     @Override

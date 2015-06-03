@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html ng-app="timetracker">
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+<link rel="stylesheet" href="lib/dependencies/css/bootstrap.min.css" />
+<script src="lib/dependencies/angular.min.js"></script>
+<script type="text/javascript" src="script/users.js"></script>
+</head>
+<body ng-controller="usersController">
+	<h1>Timtracker</h1>
+	<table class="table">
+		<thead>
+			<tr>
+				<th colspan="5">Users</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat="user in usersList">
+				<td>{{$index + 1}}</td>
+				<td>{{user.id}}</td>
+				<td>{{user.self}}</td>
+				<td>{{user.name}}</td>
+				<td>{{user.role}}</td>
+			</tr>
+		</tbody>
+	</table>
+	<h3>create user</h3>
+	<form ng-controller="createUserController" ng-submit="submit()">
+		<label for="name">user name</label>
+		<input ng-model="fields.name" type="text"/>
+		<label for="role">role</label>
+		<select ng-model="fields.role">
+			<option>USER</option>
+			<option>MANAGER</option>
+			<option>ADMIN</option>
+		</select>
+		<button type="submit">create!</button>
+		<input type="text" disabled="disabled" ng-value="result" />
+	</form>
+</body>
+</html>

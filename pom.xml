@@ -10,7 +10,6 @@
 	<name>Timtracker</name>
 	<description>Moritz' timetracker</description>
 	<modules>
-		<module>timetracker-ear</module>
 		<module>timetracker-web</module>
 		<module>timetracker-backend</module>
 	</modules>
@@ -21,6 +20,7 @@
 		<javaee-api-version>7.0</javaee-api-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<junit-version>4.12</junit-version>
+		<war-plugin-version>2.6</war-plugin-version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -53,6 +53,15 @@
 						<source>${java-version}</source>
 						<target>${java-version}</target>
 						<encoding>${project.build.sourceEncoding}</encoding>
+					</configuration>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-war-plugin</artifactId>
+					<version>${war-plugin-version}</version>
+					<configuration>
+						<warName>${artifactId}</warName>
+						<failOnMissingWebXml>false</failOnMissingWebXml>
 					</configuration>
 				</plugin>
 			</plugins>

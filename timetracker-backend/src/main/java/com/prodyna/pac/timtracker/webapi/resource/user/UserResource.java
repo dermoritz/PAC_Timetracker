@@ -63,28 +63,13 @@ public class UserResource extends RepositoryResource<User, UserRepresentation> {
     /**
      * User specific XML {@link MediaType}.
      */
-    public static final String USER_XML_MEDIA_TYPE = MediaType.APPLICATION_XML + "; type=user";
-
-    /**
-     * User specific JSON {@link MediaType}.
-     */
-    public static final String USER_JSON_MEDIA_TYPE = MediaType.APPLICATION_JSON + "; type=user";
+    public static final String MEDIA_SUBTYPE = "; type=user";
 
     /**
      * Creates {@link RepositoryResource} typed for user.
      */
     public UserResource() {
         super(UserResource.class, User.class, UserRepresentation.class);
-    }
-
-    @Override
-    public String getResourceMediaType() {
-        return USER_XML_MEDIA_TYPE;
-    }
-
-    @Override
-    protected String[] getMediaTypes() {
-        return new String[] {USER_XML_MEDIA_TYPE, USER_JSON_MEDIA_TYPE};
     }
 
     /**
@@ -109,7 +94,7 @@ public class UserResource extends RepositoryResource<User, UserRepresentation> {
         Collection<BookingRepresentation> bookings = bookingConverter.from(getUriInfo(),
                                                                            bookingRepository.getBookingsByUserId(userId));
         return Response.ok(new GenericEntity<Collection<BookingRepresentation>>(bookings) {/**/
-        }).type(getMediaType()).build();
+        }).type(getResourceMediaType()).build();
     }
 
     /**
@@ -134,7 +119,7 @@ public class UserResource extends RepositoryResource<User, UserRepresentation> {
             return Response.status(Status.NOT_FOUND).build();
         }
         return Response.ok(getConverter().from(getUriInfo(), user))
-                       .type(getMediaType())
+                       .type(getResourceMediaType())
                        .lastModified(user.getLastModified())
                        .build();
     }
@@ -161,7 +146,7 @@ public class UserResource extends RepositoryResource<User, UserRepresentation> {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response getCurrent() {
         return Response.ok(getConverter().from(getUriInfo(), currentUser))
-                       .type(getMediaType())
+                       .type(getResourceMediaType())
                        .lastModified(currentUser.getLastModified())
                        .build();
     }
@@ -217,6 +202,11 @@ public class UserResource extends RepositoryResource<User, UserRepresentation> {
             break;
         }
         return result;
+    }
+
+    @Override
+    protected String getMediaSupType() {
+        return MEDIA_SUBTYPE;
     }
 
 }

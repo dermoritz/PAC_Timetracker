@@ -9,40 +9,10 @@
 	<artifactId>timetracker-web</artifactId>
 	<packaging>war</packaging>
 	<name>timetracker-web</name>
-	<properties>
-		<war-plugin-version>2.6</war-plugin-version>
-	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>javax</groupId>
 			<artifactId>javaee-api</artifactId>
 		</dependency>
 	</dependencies>
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-war-plugin</artifactId>
-				<version>${war-plugin-version}</version>
-				<configuration>
-					<failOnMissingWebXml>false</failOnMissingWebXml>
-					<archive>
-						<manifest>
-							<addClasspath>true</addClasspath>
-							<classpathPrefix>lib/</classpathPrefix>
-						</manifest>
-					</archive>
-					<webResources>
-						<resource>
-							<filtering>true</filtering>
-							<directory>src/main/webapp</directory>
-							<includes>
-								<include>**/web.xml</include>
-							</includes>
-						</resource>
-					</webResources>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
 </project>

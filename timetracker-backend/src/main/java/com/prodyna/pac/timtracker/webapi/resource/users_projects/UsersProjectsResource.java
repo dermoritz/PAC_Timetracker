@@ -47,28 +47,13 @@ public class UsersProjectsResource extends RepositoryResource<UsersProjects, Use
     /**
      * User specific XML {@link MediaType}.
      */
-    public static final String USERSPROJECTS_XML_MEDIA_TYPE = MediaType.APPLICATION_XML + "; type=usersprojects";
-
-    /**
-     * User specific JSON {@link MediaType}.
-     */
-    public static final String USERSPROJECTS_JSON_MEDIA_TYPE = MediaType.APPLICATION_JSON + "; type=usersprojects";
+    public static final String MEDIA_SUPTYPE = "; type=usersprojects";
 
     /**
      * Creates {@link RepositoryResource} typed for usersProjects.
      */
     public UsersProjectsResource() {
         super(UsersProjectsResource.class, UsersProjects.class, UsersProjectsRepresentation.class);
-    }
-
-    @Override
-    public String getResourceMediaType() {
-        return USERSPROJECTS_XML_MEDIA_TYPE;
-    }
-
-    @Override
-    protected String[] getMediaTypes() {
-        return new String[] {USERSPROJECTS_XML_MEDIA_TYPE, USERSPROJECTS_JSON_MEDIA_TYPE};
     }
 
     @GET
@@ -86,7 +71,7 @@ public class UsersProjectsResource extends RepositoryResource<UsersProjects, Use
         Collection<UsersProjectsRepresentation> ups = getConverter().from(getUriInfo(),
                                                                           upRepository.getByUserId(userId));
         return Response.ok(new GenericEntity<Collection<UsersProjectsRepresentation>>(ups) {/**/
-        }).type(getMediaType()).build();
+        }).type(getResourceMediaType()).build();
     }
 
     @GET
@@ -99,7 +84,7 @@ public class UsersProjectsResource extends RepositoryResource<UsersProjects, Use
         Collection<UsersProjectsRepresentation> ups = getConverter().from(getUriInfo(),
                                                                           upRepository.getByProjectId(projectId));
         return Response.ok(new GenericEntity<Collection<UsersProjectsRepresentation>>(ups) {/**/
-        }).type(getMediaType()).build();
+        }).type(getResourceMediaType()).build();
     }
 
     @Override
@@ -154,5 +139,10 @@ public class UsersProjectsResource extends RepositoryResource<UsersProjects, Use
             break;
         }
         return result;
+    }
+
+    @Override
+    protected String getMediaSupType() {
+        return MEDIA_SUPTYPE;
     }
 }

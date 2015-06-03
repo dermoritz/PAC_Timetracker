@@ -1,0 +1,17 @@
+{
+  "name": "timetracker-web",
+  "version": "0.0.1",
+  "homepage": "https://github.com/dermoritz/Pac_Timetracker",
+  "authors": [
+    "ta <tanteanni@hotmail.com>"
+  ],
+  "description": "angularjs frontend for timetracker",
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

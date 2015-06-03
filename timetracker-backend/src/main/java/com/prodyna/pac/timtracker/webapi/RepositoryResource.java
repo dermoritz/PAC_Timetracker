@@ -188,11 +188,11 @@ public abstract class RepositoryResource<DOMAIN extends Identifiable & Timestamp
     public Response get(@PathParam("id") Long id) {
         DOMAIN entity = getRepository().get(id);
         if (entity == null) {
-            return Response.status(Status.NOT_FOUND).type(getMediaType()).build();
+            return Response.status(Status.NOT_FOUND).type(getResourceMediaType()).build();
         }
 
         return Response.ok(getConverter().from(uriInfo, entity))
-                       .type(getMediaType())
+                       .type(getResourceMediaType())
                        .lastModified(entity.getLastModified())
                        .build();
     }
@@ -219,7 +219,7 @@ public abstract class RepositoryResource<DOMAIN extends Identifiable & Timestamp
         } else {
             results = getConverter().from(uriInfo, getRepository().getAll());
         }
-        return Response.ok(results).type(getMediaType()).build();
+        return Response.ok(results).type(getResourceMediaType()).build();
     }
 
     /**
@@ -249,20 +249,27 @@ public abstract class RepositoryResource<DOMAIN extends Identifiable & Timestamp
     // Internal Helpers
 
     /**
-     * Each extending class will derive it's own media types. The first one is
-     * used as default if no other matches from request.
-     * 
-     * @return array of media types
+     *  
+     * @return array of accepted/sent media types
      */
-    protected abstract String[] getMediaTypes();
-
+    protected String[] getMediaTypes(){
+        return new String[]{MediaType.APPLICATION_JSON + getMediaSupType(), MediaType.APPLICATION_XML + getMediaSupType()};
+    }
+    
+    /**
+     * 
+     * @return last part for media type e.g. "; type=booking"
+     */
+    protected abstract String getMediaSupType();
+    
     /**
      * Tries to match media type of request with available (by Resource) types.
      * If no match is found the first type is returned.
      * 
      * @return media type
      */
-    protected String getMediaType() {
+    @Override
+    public String getResourceMediaType() {
         // get types from child class
         String[] mediaTypes = getMediaTypes();
         if (mediaTypes.length < 1) {
