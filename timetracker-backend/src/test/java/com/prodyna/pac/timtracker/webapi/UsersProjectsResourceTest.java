@@ -25,6 +25,7 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.DecoderConfig;
 import com.jayway.restassured.config.EncoderConfig;
 import com.jayway.restassured.config.RestAssuredConfig;
+import com.jayway.restassured.specification.RequestSpecification;
 import com.prodyna.pac.timtracker.cdi.CurrentUserProducer;
 import com.prodyna.pac.timtracker.model.util.PersistenceArquillianContainer;
 import com.prodyna.pac.timtracker.webapi.resource.project.ProjectRepresentation;
@@ -110,6 +111,8 @@ public class UsersProjectsResourceTest {
         upRep.setUser(xmlUser);
 
         URL url = new URL(base, USERSPROJECTS_PATH);
+        RequestSpecification body = given().contentType(MediaType.APPLICATION_JSON).body(upRep);
+        
         String uriUsersProject = given().contentType(MediaType.APPLICATION_JSON).body(upRep)
                                         .then().statusCode(Status.CREATED.getStatusCode())
                                         .when().post(url)
@@ -121,6 +124,10 @@ public class UsersProjectsResourceTest {
                                                        .statusCode(Status.OK.getStatusCode())
                                                        .when().get(uriUsersProject).body()
                                                        .as(UsersProjectsRepresentation.class);
+        String upString = given().then().contentType(MediaType.APPLICATION_JSON)
+                                 .statusCode(Status.OK.getStatusCode())
+                                 .when().get(uriUsersProject).body()
+                                 .as(String.class);
         assertThat(fetchedUP.getSelf(), is(uriUsersProject));
     }
 
