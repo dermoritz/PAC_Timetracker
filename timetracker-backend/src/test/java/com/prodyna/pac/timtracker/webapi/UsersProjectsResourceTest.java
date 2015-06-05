@@ -124,10 +124,6 @@ public class UsersProjectsResourceTest {
                                                        .statusCode(Status.OK.getStatusCode())
                                                        .when().get(uriUsersProject).body()
                                                        .as(UsersProjectsRepresentation.class);
-        String upString = given().then().contentType(MediaType.APPLICATION_JSON)
-                                 .statusCode(Status.OK.getStatusCode())
-                                 .when().get(uriUsersProject).body()
-                                 .as(String.class);
         assertThat(fetchedUP.getSelf(), is(uriUsersProject));
     }
 

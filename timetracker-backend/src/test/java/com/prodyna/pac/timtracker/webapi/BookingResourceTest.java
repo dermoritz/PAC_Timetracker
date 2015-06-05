@@ -22,6 +22,8 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.prodyna.pac.timtracker.cdi.CurrentUserProducer;
@@ -136,6 +138,14 @@ public class BookingResourceTest {
                                    // store should return uri for stored
                                    // object in location header
                                    .header("Location");
+        String writeValueAsString ="";
+        try {
+            writeValueAsString = (new ObjectMapper()).writeValueAsString(bookingRep);
+        } catch (JsonProcessingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        System.out.println(writeValueAsString);
         // fetch stored booking
         BookingRepresentation fetchedBooking = given().then().contentType(mediaType)
                                                       .statusCode(Status.OK.getStatusCode())
