@@ -2,50 +2,99 @@
  * 
  */
 var rootUrl = "http://localhost:8080/timetracker-backend";
-
-var currentUser = null;
+var wsRootUrl = "ws://localhost:8080/timetracker-backend";
+var logOutUrl = "http://invalid:invalid@localhost:8080/timetracker-backend/timetracker/user/all";
 
 var app = angular.module('timetracker', [ 'ui.bootstrap' ]);
 
-app.controller('createBookingCtrl', function($scope, $http, $filter) {
+// renders current user available before others need it
+angular.element(document).ready(function() {
+	var initInjector = angular.injector([ 'ng' ]);
+	var $http = initInjector.get('$http');
+	$http.get(rootUrl + '/timetracker/user/current').then(function(response) {
+		app.constant('currentUser', response.data);
+		angular.bootstrap(document, [ 'timetracker' ]);
+	});
+});
+
+app.controller('roleCtrl', function($scope, currentUser){
+	$scope.isNotManager = !("MANAGER"==currentUser.role) && !("ADMIN"==currentUser.role);
+	$scope.isNotAdmin = !("ADMIN"==currentUser.role);
+});
+
+app.controller('currentUserCtrl', function($scope, currentUser) {
+	$scope.url = logOutUrl;
+	$scope.currentUser = currentUser;
+});
+
+app.controller('createBookingCtrl', function($scope, $http, $filter, currentUser) {
+	//list of projects for current user (usersprojects)
+	$scope.projectsList = {};
+	$http.get(rootUrl + '/timetracker/usersprojects/user/' + currentUser.id).success(function(response) {
+		for (var i = 0; i < response.length; ++i)
+			//map users project by projects name
+			$scope.projectsList[response[i].project.name] = response[i];
+	});
+	
+	//opens date picker for start
 	$scope.openStart = function($event) {
 		$event.preventDefault();
 		$event.stopPropagation();
-
 		$scope.openedStart = true;
 	};
+	//opens date picker for end
 	$scope.openEnd = function($event) {
 		$event.preventDefault();
 		$event.stopPropagation();
-
 		$scope.openedEnd = true;
 	};
-//	var startTime;
-//	var endTime;
-//	$scope.timeChanged = function(){
-//		endTime = $scope.endTime; 
-//		startTime = $scope.startTime;
-//	}
 	
 	$scope.submit = function(){
+		//convert date, time string to epoch time
 		var startDateF = $filter('date')($scope.startDate, "MM dd, yyyy");
 		var startTimeF = $filter('date')($scope.startTime,"HH:mm:ss")
-		var end = $scope.endDate;
-		$scope.result = new Date(startDateF+" "+startTimeF).getTime();
+		var endDateF = $filter('date')($scope.endDate, "MM dd, yyyy");
+		var endTimeF = $filter('date')($scope.endTime,"HH:mm:ss")
+		var booking = {
+			"usersProjects" :  $scope.projectsList[$scope.fields.project],
+			"start" : new Date(startDateF + " " + startTimeF).getTime(),
+			"end" : new Date(endDateF + " " + endTimeF).getTime()
+		};
+		$http.post(rootUrl + "/timetracker/booking", booking).success(
+				function(answer, status) {
+					$scope.result = status;
+				}).error(function(answer, status) {
+			$scope.result = status;
+		});
 	}
 	
 });
 
-app.controller('currentUser', function($scope, $http) {
-	$scope.currentUser = null;
-	$http.get(rootUrl + '/timetracker/user/current').success(
-			function(response) {
-				$scope.currentUser = response;
-				currentUser = response;
-			});
-}
+app.controller('myBookingsCtrl', function($scope, $http, currentUser){
+	$scope.bookingsList = [];
+	$http.get(rootUrl + '/timetracker/booking/user/' + currentUser.id).success(function(response) {
+		$scope.bookingsList = response;
+	});
+});
 
-);
+app.controller('myProjectsCtrl', function($scope, $http, currentUser){
+	$scope.projectsList = [];
+	$http.get(rootUrl + '/timetracker/usersprojects/user/' + currentUser.id).success(function(response) {
+		$scope.projectsList = response;
+	});
+});
+
+app.controller('allBookingsCtrl', function($scope, $http, currentUser){
+	$scope.bookingsList = [];
+	var ws = new WebSocket(wsRootUrl + '/allbookings');
+	ws.onmessage = function(message){
+		$scope.bookingsList = message.data;
+		$scope.$apply();
+	};
+	$http.get(rootUrl + '/timetracker/booking/all').success(function(response) {
+		$scope.bookingsList = response;
+	});
+});
 
 app.controller('usersController', function($scope, $http) {
 	$scope.usersList = [];

@@ -1,15 +1,17 @@
 <!DOCTYPE html>
-<html ng-app="timetracker">
+<html>
 <head>
     <meta charset="ISO-8859-1">
-    <title>Insert title here</title>
+    <title>Timetracker</title>
     <link rel="stylesheet" href="lib/dependencies/css/bootstrap.min.css"/>
     <script src="lib/dependencies/angular.min.js"></script>
     <script src="lib/dependencies/ui-bootstrap-tpls.min.js"></script>
     <script type="text/javascript" src="script/script.js"></script>
 </head>
-<body ng-controller="currentUser">
-<p>Welcome {{currentUser.name}} your are {{currentUser.role}}</p>
+<body ng-controller="roleCtrl">
+<div ng-if="initialLoad">loading ...</div>
+<div ng-cloak>
+<p  ng-controller="currentUserCtrl">Welcome {{currentUser.name}} your are {{currentUser.role}}. <a href={{url}}>Logout</a> </p>
 <tabset>
     <tab heading="my bookings" active=true>
         <form ng-controller="createBookingCtrl" ng-submit="submit()">
@@ -17,7 +19,7 @@
                 <label for="project">project</label>
                 <input type="text" list="projects" class="form-control" ng-model="fields.project"/>
                 <datalist id="projects">
-                    <option ng-repeat="project in projectsList">{{project.name}}</option>
+                    <option ng-repeat="project in projectsList">{{project.project.name}}</option>
                 </datalist>
             </div>
             <div class="input-group">
@@ -29,7 +31,7 @@
                         <i class="glyphicon glyphicon-calendar"></i>
                     </button>
                 </span>
-                <timepicker ng-model="startTime" ng-change="timeChanged()" show-meridian="false"></timepicker>
+                <timepicker ng-model="startTime" show-meridian="false"></timepicker>
             </div>
             <div class="input-group">
                 <label for="end">end time</label>
@@ -40,12 +42,12 @@
                         <i class="glyphicon glyphicon-calendar"></i>
                     </button>
                 </span>
-                <timepicker ng-model="endTime" ng-change="timeChanged()" show-meridian="false"></timepicker>
+                <timepicker ng-model="endTime" show-meridian="false"></timepicker>
             </div>
-            <button type="submit">create!</button>
+            <button type="submit" class="btn btn-default">create!</button>
             <input type="text" disabled="disabled" ng-value="result"/>
         </form>
-        <table class="table">
+        <table ng-controller="myBookingsCtrl" class="table">
             <thead>
                 <tr>
                     <th>#</th>
@@ -57,16 +59,54 @@
             <tbody>
                 <tr ng-repeat="booking in bookingsList">
                     <td>{{$index + 1}}</td>
-                    <td>{{booking.usersproject.project.name}}</td>
+                    <td>{{booking.usersProjects.project.name}}</td>
                     <td>{{booking.start | date:'yyyy-MM-dd HH:mm:ss' }}</td>
                     <td>{{booking.end | date:'yyyy-MM-dd HH:mm:ss' }}</td>
                 </tr>
             </tbody>
         </table>
     </tab>
-    <tab heading="my projects">myprojects</tab>
-    <tab heading="all bookings">allBookings</tab>
-    <tab heading="all projects">
+    <tab heading="my projects">
+        <table ng-controller="myProjectsCtrl" class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>name</th>
+                    <th>description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="project in projectsList">
+                    <td>{{$index + 1}}</td>
+                    <td>{{project.project.name}}</td>
+                    <td>{{project.project.description}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </tab> 
+    <tab heading="all bookings" ng-hide="isNotManager">
+        <table ng-controller="allBookingsCtrl" class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>user</th>
+                    <th>project</th>
+                    <th>start</th>
+                    <th>end</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="booking in bookingsList">
+                    <td>{{$index + 1}}</td>
+                    <td>{{booking.usersProjects.user.name}}</td>
+                    <td>{{booking.usersProjects.project.name}}</td>
+                    <td>{{booking.start | date:'yyyy-MM-dd HH:mm:ss' }}</td>
+                    <td>{{booking.end | date:'yyyy-MM-dd HH:mm:ss' }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </tab>
+    <tab heading="all projects" ng-hide="isNotManager">
         <form ng-controller="createProjectController" ng-submit="submit()">
             <div class="form-group">
                 <label for="projectName">project name</label>
@@ -78,7 +118,7 @@
                 <label for="projectDescription">description</label>
                 <input ng-model="fields.description" type="text" class="form-control"/>
             </div>
-            <button type="submit">create!</button>
+            <button type="submit" class="btn btn-default">create!</button>
             <input type="text" disabled="disabled" ng-value="result"/>
         </form>
         <table ng-controller="allProjectsController" class="table">
@@ -98,7 +138,7 @@
             </tbody>
         </table>
     </tab>
-    <tab heading="register user">
+    <tab heading="register users to projects" ng-hide="isNotManager">
         <form ng-controller="registerUserToProjectController" ng-submit="submit()">
             <div class="form-group">
                 <label for="user">user</label>
@@ -114,7 +154,7 @@
                     <option ng-repeat="project in projectsList">{{project.name}}</option>
                 </datalist>
             </div>
-            <button type="submit">register!</button>
+            <button type="submit" class="btn btn-default">register!</button>
             <input type="text" disabled="disabled" ng-value="result"/>
         </form>
         <table ng-controller="usersProjectsController" class="table">
@@ -133,44 +173,46 @@
             </tr>
             </tbody>
         </table>
-    </tab>
-    <tab heading="tests">
-        <h1>Users</h1>
-        <table ng-controller="usersController" class="table">
-            <thead>
-            <tr>
-                <th>#</th>
-                <th>id</th>
-                <th>link</th>
-                <th>name</th>
-                <th>role</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr ng-repeat="user in usersList">
-                <td>{{$index + 1}}</td>
-                <td>{{user.id}}</td>
-                <td>{{user.self}}</td>
-                <td>{{user.name}}</td>
-                <td>{{user.role}}</td>
-            </tr>
-            </tbody>
-        </table>
-        <h3>create user</h3>
-
+    </tab> 
+    <tab heading="Manage users" ng-hide="isNotAdmin">
         <form ng-controller="createUserController" ng-submit="submit()">
-            <label for="name">user name</label>
-            <input ng-model="fields.name" type="text"/>
+            <div class="form-group">
+                <label for="name">user name</label>
+                <input ng-model="fields.name" type="text" class="form-control" />
+            </div>
+            <div class="form-group">
             <label for="role">role</label>
-            <select ng-model="fields.role">
+            <select ng-model="fields.role" class="form-control">
                 <option>USER</option>
                 <option>MANAGER</option>
                 <option>ADMIN</option>
             </select>
-            <button type="submit">create!</button>
-            <input type="text" disabled="disabled" ng-value="result"/>
+            </div>
+            <button type="submit" class="btn btn-default">create!</button>
+            <input type="text" disabled="disabled" ng-value="result" />
         </form>
-    </tab>
+        <table ng-controller="usersController" class="table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>id</th>
+                    <th>link</th>
+                    <th>name</th>
+                    <th>role</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="user in usersList">
+                    <td>{{$index + 1}}</td>
+                    <td>{{user.id}}</td>
+                    <td>{{user.self}}</td>
+                    <td>{{user.name}}</td>
+                    <td>{{user.role}}</td>
+                </tr>
+            </tbody>
+        </table>
+     </tab>
 </tabset>
+</div>
 </body>
 </html>

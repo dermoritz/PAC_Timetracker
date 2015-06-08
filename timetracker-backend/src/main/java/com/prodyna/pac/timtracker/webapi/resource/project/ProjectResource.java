@@ -1,6 +1,5 @@
 package com.prodyna.pac.timtracker.webapi.resource.project;
 
-import java.net.URI;
 import java.util.Collection;
 
 import javax.enterprise.context.RequestScoped;
@@ -14,7 +13,6 @@ import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
 
 import com.prodyna.pac.timtracker.model.Booking;
 import com.prodyna.pac.timtracker.model.BookingRepository;
