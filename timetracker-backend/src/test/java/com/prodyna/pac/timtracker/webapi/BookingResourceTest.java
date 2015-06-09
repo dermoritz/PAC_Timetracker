@@ -169,4 +169,92 @@ public class BookingResourceTest {
         given().then().statusCode(Status.NOT_FOUND.getStatusCode()).when().get(uriBooking);
     }
 
+    @Test
+    public void checkOverlapping() throws MalformedURLException {
+        // create user
+        UserRepresentation xmlUser = new UserRepresentation();
+        String userName = "Klaus1";
+        String userRole = "USER";
+        xmlUser.setName(userName);
+        xmlUser.setRole(userRole);
+        // create project
+        ProjectRepresentation projectRep = new ProjectRepresentation();
+        String pDescr = "p1 d";
+        String pName = "p11";
+        projectRep.setDescription(pDescr);
+        projectRep.setName(pName);
+        // register user to project
+        UsersProjectsRepresentation upRep = new UsersProjectsRepresentation();
+        upRep.setProject(projectRep);
+        upRep.setUser(xmlUser);
+
+        // Store users project, users project must be persisted before using it
+        // for a booking
+        URL upUrl = new URL(base, USERSPROJECTS_PATH);
+        String uriUsersProject = given().contentType(MediaType.APPLICATION_JSON).body(upRep)
+                                        .then().statusCode(Status.CREATED.getStatusCode())
+                                        .when().post(upUrl)
+                                        // store should return uri for stored
+                                        // object in location header
+                                        .header("Location");
+        // retrieve the usersprojects by url returned on creation
+        UsersProjectsRepresentation fetchedUP = given().then().contentType(MediaType.APPLICATION_JSON)
+                                                       .statusCode(Status.OK.getStatusCode())
+                                                       .when().get(uriUsersProject).body()
+                                                       .as(UsersProjectsRepresentation.class);
+        assertThat(fetchedUP.getUser().getName(), is(userName));
+        assertThat(fetchedUP.getProject().getDescription(), is(pDescr));
+        assertNotNull(fetchedUP.getId());
+        // create booking
+        URL bookingUrl = new URL(base, BOOKING_PATH);
+        BookingRepresentation bookingRep = new BookingRepresentation();
+        Date start = new Date(2);
+        Date end = new Date(3);
+        bookingRep.setEnd(end);
+        bookingRep.setStart(start);
+        bookingRep.setUsersProjects(fetchedUP);
+
+        String uriBooking1 = given().contentType(MediaType.APPLICATION_JSON).body(bookingRep)
+                                    .then().statusCode(Status.CREATED.getStatusCode())
+                                    .when().post(bookingUrl)
+                                    // store should return uri for stored
+                                    // object in location header
+                                    .header("Location");
+        // fetch stored booking
+        BookingRepresentation fetchedBooking1 = given().then().contentType(MediaType.APPLICATION_JSON)
+                                                       .statusCode(Status.OK.getStatusCode())
+                                                       .when().get(uriBooking1).body()
+                                                       .as(BookingRepresentation.class);
+
+        BookingRepresentation bookingRep1 = new BookingRepresentation();
+        Date start1 = new Date(4);
+        Date end1 = new Date(6);
+        bookingRep1.setEnd(end1);
+        bookingRep1.setStart(start1);
+        bookingRep1.setUsersProjects(fetchedUP);
+
+        String uriBooking2 = given().contentType(MediaType.APPLICATION_JSON).body(bookingRep1)
+                                    .then().statusCode(Status.CREATED.getStatusCode())
+                                    .when().post(bookingUrl)
+                                    // store should return uri for stored
+                                    // object in location header
+                                    .header("Location");
+        // fetch stored booking
+        BookingRepresentation fetchedBooking2 = given().then().contentType(MediaType.APPLICATION_JSON)
+                                                       .statusCode(Status.OK.getStatusCode())
+                                                       .when().get(uriBooking2).body()
+                                                       .as(BookingRepresentation.class);
+        String ovPath = BOOKING_PATH + "/overlapping/" + fetchedUP.getUser().getId();
+        URL overlapping = new URL(base, ovPath + "/1/6");
+        BookingRepresentation[] bookings = given().then().contentType(MediaType.APPLICATION_JSON)
+                                                  .statusCode(Status.OK.getStatusCode()).when().get(overlapping).body()
+                                                  .as(BookingRepresentation[].class);
+        assertThat(bookings.length, is(2));
+        overlapping = new URL(base, ovPath + "/1/2");
+        bookings = given().then().contentType(MediaType.APPLICATION_JSON)
+                .statusCode(Status.OK.getStatusCode()).when().get(overlapping).body()
+                .as(BookingRepresentation[].class);
+        assertThat(bookings.length, is(0));
+
+    }
 }

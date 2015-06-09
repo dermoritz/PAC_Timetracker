@@ -338,7 +338,9 @@ public class FetchingDataTest {
                       .when().get(uriUsersProject).body()
                       .as(UsersProjectsRepresentation.class);
     }
-
+    
+    private long bookingStart=0;
+    
     private BookingRepresentation createBooking(UsersProjectsRepresentation up) {
         URL bookingUrl;
         try {
@@ -347,8 +349,9 @@ public class FetchingDataTest {
             throw new IllegalStateException("wtf: ", e);
         }
         BookingRepresentation bookingRep = new BookingRepresentation();
-        Date start = new Date(3600000);
-        Date end = new Date(3600000 * 2);
+        Date start = new Date(bookingStart);
+        bookingStart= bookingStart+3600000;
+        Date end = new Date(bookingStart);
         bookingRep.setEnd(end);
         bookingRep.setStart(start);
         bookingRep.setUsersProjects(up);

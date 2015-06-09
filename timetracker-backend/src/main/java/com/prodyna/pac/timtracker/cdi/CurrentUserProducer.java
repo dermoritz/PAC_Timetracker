@@ -77,7 +77,7 @@ public class CurrentUserProducer implements Serializable, ContextResolver<User> 
         }
         return user;
     }
-
+    
     @Override
     public User getContext(Class<?> type) {
         if (type.equals(User.class)){

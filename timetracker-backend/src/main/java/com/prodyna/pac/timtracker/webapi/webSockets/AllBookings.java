@@ -10,13 +10,12 @@ import javax.websocket.OnClose;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.UriInfo;
 
-import com.prodyna.pac.timtracker.cdi.CurrentUser;
+import org.slf4j.Logger;
+
 import com.prodyna.pac.timtracker.model.Booking;
 import com.prodyna.pac.timtracker.model.BookingRepository;
-import com.prodyna.pac.timtracker.model.User;
+import com.prodyna.pac.timtracker.model.UserRole;
 import com.prodyna.pac.timtracker.persistence.Created;
 import com.prodyna.pac.timtracker.persistence.Removed;
 import com.prodyna.pac.timtracker.webapi.resource.booking.BookingRepresentationConverter;
@@ -32,10 +31,21 @@ public class AllBookings {
 
     @Inject
     private SessionRegistry sessions;
+    
+    @Inject
+    private UserUtil userUtil;
+    
+    @Inject
+    private Logger log;
 
     @OnOpen
     public void open(Session session, EndpointConfig conf) {
-        sessions.add(session);
+        UserRole role = userUtil.getCreateUser(session.getUserPrincipal().getName());
+        if(role.equals(UserRole.ADMIN) || role.equals(UserRole.MANAGER)){
+            sessions.add(session);
+        } else {
+            log.debug("Rejected to open websocket to user " + session.getUserPrincipal().getName());
+        }
     }
 
     @OnClose

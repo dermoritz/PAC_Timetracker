@@ -273,7 +273,31 @@ public class BookingTest {
         thrown.expectMessage("must before");
         new Booking(createUp(), new Date(3), new Date(2));
     }
-
+    
+    @Test
+    public void checkOverlapping() {
+        UsersProjects storedUp = createUp();
+        //create 2 bookings
+        Booking b1 = repository.store(new Booking(storedUp, new Date(2), new Date(3)));
+        Booking b2 = repository.store(new Booking(storedUp, new Date(4), new Date(6)));
+        //check non overlapping
+        List<Booking> overlapping = bRepo.getOverlapping(storedUp.getUser().getId(), new Date(6), new Date(8));
+        assertThat(overlapping.size(), is(0));
+        overlapping = bRepo.getOverlapping(storedUp.getUser().getId(), new Date(1), new Date(2));
+        assertThat(overlapping.size(), is(0));
+        overlapping = bRepo.getOverlapping(storedUp.getUser().getId(), new Date(3), new Date(4));
+        assertThat(overlapping.size(), is(0));
+        //check overlapping
+        overlapping = bRepo.getOverlapping(storedUp.getUser().getId(), new Date(1), new Date(6));
+        assertThat(overlapping.size(), is(2));
+        overlapping = bRepo.getOverlapping(storedUp.getUser().getId(), new Date(1), new Date(3));
+        assertThat(overlapping.size(), is(1));
+        assertThat(overlapping.get(0), is(b1));
+        overlapping = bRepo.getOverlapping(storedUp.getUser().getId(), new Date(5), new Date(8));
+        assertThat(overlapping.size(), is(1));
+        assertThat(overlapping.get(0), is(b2));
+    }
+    
     /**
      * Creates and persists a {@link UsersProjects}. It is needed to create a
      * {@link Booking}.
