@@ -8,10 +8,4 @@
 	<artifactId>timetracker-web</artifactId>
 	<packaging>war</packaging>
 	<name>timetracker-web</name>
-	<dependencies>
-		<dependency>
-			<groupId>javax</groupId>
-			<artifactId>javaee-api</artifactId>
-		</dependency>
-	</dependencies>
 </project>

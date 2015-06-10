@@ -1,0 +1,35 @@
+<!-- configures contents of distribution package, bundle package by calling 
+	"mvn clean package assembly:single" -->
+<assembly
+	xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+	<id>distribution</id>
+	<formats>
+		<format>zip</format>
+	</formats>
+	<baseDirectory>timtracker-${project.version}</baseDirectory>
+	<fileSets>
+		<fileSet>
+			<directory>../</directory>
+			<outputDirectory>/</outputDirectory>
+			<includes>
+				<include>readme.md</include>
+			</includes>
+		</fileSet>
+		<fileSet>
+			<directory>../timetracker-web/target</directory>
+			<outputDirectory>/timetracker-web</outputDirectory>
+			<includes>
+				<include>*.war</include>
+			</includes>
+		</fileSet>
+		<fileSet>
+			<directory>../timetracker-backend/target</directory>
+			<outputDirectory>/timetracker-backend</outputDirectory>
+			<includes>
+				<include>*.war</include>
+			</includes>
+		</fileSet>
+	</fileSets>
+</assembly>

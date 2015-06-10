@@ -8,18 +8,19 @@ This repository uses [GitFlow](http://nvie.com/posts/a-successful-git-branching-
 
 ## How to build
 
-This application is a multi module maven project (you need [maven setup and running](https://maven.apache.org/guides/getting-started/maven-in-five-minutes.html)). There are 2 modules:
+This application is a multi module maven project (you need [maven setup and running](https://maven.apache.org/guides/getting-started/maven-in-five-minutes.html)). There are 3 modules:
 
 - **timetracker-backend**, contains JavaEE 7 application packaged as war
 - **timtracker-web**, pure html/js project packaged as war
+- **dml**, distribution package includes both war files and this readme
 
-The build of both modules could be commenced from parent timetracker/pom:
+The build all modules could be commenced from parent timetracker/pom:
  
  ```
- mvn clean package
+ mvn clean install
  ```
  
- This will build both war files. During build of backend a Wildfly application server will be downloaded to commence all tests.
+This will build both war files and the distribution package. During build of backend a Wildfly application server will be downloaded to commence all tests.
  
 ## How to deploy
 
@@ -39,7 +40,9 @@ The application relies on basic authentication from security domain "other". Thi
 
 Deploy the war files (one in each target folder) as usual. For wildfly you could use the gui (http://localhost:9990/console/App.html#deployments). You could reach the frontend via <wildflyadress:ip>/timetracker-web the rest services are exposed via <wildflyadress:ip>/timetracker-backend/timetracker/...
 
+## Rest api
 
+the rest api is documented here: https://github.com/dermoritz/Pac_Timetracker/wiki/Timetracker-Rest-API
 
  
  

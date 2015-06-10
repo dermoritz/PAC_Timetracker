@@ -1,0 +1,68 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com.prodyna.pac.moritz</groupId>
+		<artifactId>timetracker</artifactId>
+		<version>1.1-SNAPSHOT</version>
+	</parent>
+	<artifactId>dml</artifactId>
+	<name>dml</name>
+	<description>distribution package</description>
+	<packaging>pom</packaging>
+	<dependencies>
+		<dependency>
+			<groupId>com.prodyna.pac.moritz</groupId>
+			<artifactId>timetracker-web</artifactId>
+			<version>${project.version}</version>
+			<type>war</type>
+		</dependency>
+		<dependency>
+			<groupId>com.prodyna.pac.moritz</groupId>
+			<artifactId>timetracker-backend</artifactId>
+			<version>${project.version}</version>
+			<type>war</type>
+		</dependency>
+	</dependencies>
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+			<resource>
+				<!-- filter to include "esp.model.folder" property and set this in assembly. 
+					Property could either be set by -Desp.model.folder or in properties part 
+					in <user>/.m2/settings.xml -->
+				<directory>src/assembly</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>assembly.xml</include>
+				</includes>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.5.4</version>
+				<executions>
+					<execution>
+						<id>distro-assembly</id>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptor>src/assembly/assembly.xml</descriptor>
+							<finalName>timtracker-dml-${project.version}</finalName>
+						</configuration>
+					</execution>
+				</executions>
+				<configuration>
+					<descriptor>src/assembly/assembly.xml</descriptor>
+					<finalName>timtracker-dml-${project.version}</finalName>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+</project>
