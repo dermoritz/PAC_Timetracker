@@ -27,9 +27,7 @@ import com.prodyna.pac.timtracker.model.Booking;
 import com.prodyna.pac.timtracker.model.BookingRepository;
 import com.prodyna.pac.timtracker.model.User;
 import com.prodyna.pac.timtracker.model.UserRole;
-import com.prodyna.pac.timtracker.persistence.Repository;
 import com.prodyna.pac.timtracker.webapi.RepositoryResource;
-import com.prodyna.pac.timtracker.webapi.resource.users_projects.UsersProjectsRepresentation;
 
 @Path("/booking")
 @RequestScoped
@@ -176,6 +174,14 @@ public class BookingResource extends RepositoryResource<Booking, BookingRepresen
         return super.update(id, representation);
     }
     
+    /**
+     * Use this to check a booking. Bookings with overlapping intervals will be rejected.
+     * 
+     * @param userId
+     * @param start epoch time start of interval
+     * @param end epoch time end of interval
+     * @return list of bookings overlapping with given interval
+     */
     @GET
     @Path("/overlapping/{userId}/{start}/{end}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})

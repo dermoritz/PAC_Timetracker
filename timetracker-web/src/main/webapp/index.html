@@ -4,6 +4,7 @@
     <meta charset="ISO-8859-1">
     <title>Timetracker</title>
     <link rel="stylesheet" href="lib/dependencies/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="styles.css"/>
     <script src="lib/dependencies/angular.min.js"></script>
     <script src="lib/dependencies/ui-bootstrap-tpls.min.js"></script>
     <script type="text/javascript" src="script/script.js"></script>
@@ -11,7 +12,12 @@
 <body ng-controller="roleCtrl">
 <div ng-if="initialLoad">loading ...</div>
 <div ng-cloak>
-<p  ng-controller="currentUserCtrl">Welcome {{currentUser.name}} your are {{currentUser.role}}. <a href={{url}}>Logout</a> </p>
+    <h3 id="welcome-msg" ng-controller="currentUserCtrl">Welcome {{currentUser.name}} your are {{currentUser.role}}.
+        <a class="btn btn-default btn-sm" href={{url}}>
+            <span class="glyphicon glyphicon-log-out"></span> Logout
+        </a>
+    </h3>
+
 <tabset>
     <tab heading="my bookings" active=true>
         <form ng-controller="createBookingCtrl" ng-submit="submit()">
@@ -22,32 +28,54 @@
                     <option ng-repeat="project in projectsList">{{project.project.name}}</option>
                 </datalist>
             </div>
-            <div class="input-group">
+            <div class="form-group">
                 <label for="start">start time</label>
-                <input type="text" class="form-control" datepicker-popup="yyyy-MM-dd" ng-model="startDate" 
-                        is-open="openedStart" ng-required="true" close-text="close!" />
-                <span class="input-group-btn">
-                    <button type="button" class="btn btn-default" ng-click="openStart($event)">
-                        <i class="glyphicon glyphicon-calendar"></i>
-                    </button>
-                </span>
-                <timepicker ng-model="startTime" show-meridian="false"></timepicker>
+                <div class="row">
+                    <div class="col-md-9">
+                        <div class="input-group">
+                            <input type="text" class="form-control" datepicker-popup="yyyy-MM-dd" ng-model="startDate" 
+                                    is-open="openedStart" ng-required="true" close-text="close!" />
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-default" ng-click="openStart($event)">
+                                    <i class="glyphicon glyphicon-calendar"></i>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <timepicker id="startTime" ng-model="startTime" show-meridian="false"></timepicker>
+                    </div>
+                </div>
             </div>
-            <div class="input-group">
+            <div class="form-group">
                 <label for="end">end time</label>
-                <input type="text" class="form-control" datepicker-popup="yyyy-MM-dd" ng-model="endDate" 
-                        is-open="openedEnd" ng-required="true" close-text="close!" />
-                <span class="input-group-btn">
-                    <button type="button" class="btn btn-default" ng-click="openEnd($event)">
-                        <i class="glyphicon glyphicon-calendar"></i>
-                    </button>
-                </span>
-                <timepicker ng-model="endTime" show-meridian="false"></timepicker>
+                <div class="row">
+                    <div class="col-md-9">
+                        <div class="input-group">
+                             <input type="text" class="form-control" datepicker-popup="yyyy-MM-dd" ng-model="endDate" 
+                                    is-open="openedEnd" ng-required="true" close-text="close!" />
+                             <span class="input-group-btn">
+                                 <button type="button" class="btn btn-default" ng-click="openEnd($event)">
+                                    <i class="glyphicon glyphicon-calendar"></i>
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">                            
+                        <timepicker id="endTime" ng-model="endTime" show-meridian="false"></timepicker>
+                    </div>
+                </div>
             </div>
-            <button type="submit" class="btn btn-default">create!</button>
-            <input type="text" disabled="disabled" ng-value="result"/>
+            <div class="row">
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary">create!</button>
+                </div>
+                <div class="col-md-10">
+                    <input class="form-control" type="text" disabled="disabled" ng-value="result" placeholder="result"/>
+                </div>
+            </div>
         </form>
-        <table ng-controller="myBookingsCtrl" class="table">
+        <table ng-controller="myBookingsCtrl" class="table table-striped">
             <thead>
                 <tr>
                     <th>#</th>
@@ -67,7 +95,7 @@
         </table>
     </tab>
     <tab heading="my projects">
-        <table ng-controller="myProjectsCtrl" class="table">
+        <table ng-controller="myProjectsCtrl" class="table table-striped">
             <thead>
                 <tr>
                     <th>#</th>
@@ -85,7 +113,7 @@
         </table>
     </tab> 
     <tab heading="all bookings" ng-hide="isNotManager">
-        <table ng-controller="allBookingsCtrl" class="table">
+        <table ng-controller="allBookingsCtrl" class="table table-striped">
             <thead>
                 <tr>
                     <th>#</th>
@@ -118,10 +146,16 @@
                 <label for="projectDescription">description</label>
                 <input ng-model="fields.description" type="text" class="form-control"/>
             </div>
-            <button type="submit" class="btn btn-default">create!</button>
-            <input type="text" disabled="disabled" ng-value="result"/>
+            <div class="row">
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary">create!</button>
+                </div>
+                <div class="col-md-10">
+                    <input class="form-control" type="text" disabled="disabled" ng-value="result" placeholder="result"/>
+                </div>
+            </div>
         </form>
-        <table ng-controller="allProjectsController" class="table">
+        <table ng-controller="allProjectsController" class="table table-striped">
             <thead>
             <tr>
                 <th>#</th>
@@ -154,15 +188,21 @@
                     <option ng-repeat="project in projectsList">{{project.name}}</option>
                 </datalist>
             </div>
-            <button type="submit" class="btn btn-default">register!</button>
-            <input type="text" disabled="disabled" ng-value="result"/>
+            <div class="row">
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary">register!</button>
+                </div>
+                <div class="col-md-10">
+                    <input class="form-control" type="text" disabled="disabled" ng-value="result" placeholder="result"/>
+                </div>
+            </div>
         </form>
-        <table ng-controller="usersProjectsController" class="table">
+        <table ng-controller="usersProjectsController" class="table table-striped">
             <thead>
             <tr>
-                <td>#</td>
-                <td>project</td>
-                <td>user</td>
+                <th>#</th>
+                <th>project</th>
+                <th>user</th>
             </tr>
             </thead>
             <tbody>
@@ -188,10 +228,16 @@
                 <option>ADMIN</option>
             </select>
             </div>
-            <button type="submit" class="btn btn-default">create!</button>
-            <input type="text" disabled="disabled" ng-value="result" />
+            <div class="row">
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary">create!</button>
+                </div>
+                <div class="col-md-10">
+                    <input class="form-control" type="text" disabled="disabled" ng-value="result" placeholder="result"/>
+                </div>
+            </div>
         </form>
-        <table ng-controller="usersController" class="table">
+        <table ng-controller="usersController" class="table table-striped">
             <thead>
                 <tr>
                     <th>#</th>
