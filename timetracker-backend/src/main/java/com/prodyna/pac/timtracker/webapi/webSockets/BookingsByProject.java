@@ -1,6 +1,7 @@
 package com.prodyna.pac.timtracker.webapi.webSockets;
 
 import java.io.IOException;
+import java.util.function.Consumer;
 
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
@@ -13,6 +14,7 @@ import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
+import org.codehaus.groovy.util.Finalizable;
 import org.slf4j.Logger;
 
 import com.prodyna.pac.timtracker.cdi.UserUtil;
@@ -32,6 +34,8 @@ import com.prodyna.pac.timtracker.webapi.resource.booking.BookingRepresentationC
                 configurator = WebSocketUserConfig.class)
 public class BookingsByProject {
 
+    private static final String PROJECT_ID_KEY = "projectId";
+
     @Inject
     private UserUtil userUtil;
 
@@ -44,16 +48,9 @@ public class BookingsByProject {
     @Inject
     private BookingRepresentationConverter converter;
 
-    /**
-     * Project id for this web socket connection.
-     */
-    private volatile Long projectId = null;
-
-    /**
-     * Session for this connection.
-     */
-    private volatile Session session = null;
-
+    @Inject
+    private BookingsByProjectSessionRegistry sessions;
+    
     /**
      * Registers session and reads config (user name and role).
      * 
@@ -64,12 +61,13 @@ public class BookingsByProject {
      * @param projectId id of project
      */
     @OnOpen
-    public void open(Session session, EndpointConfig conf, @PathParam("projectId") String projectId) {
+    public void open(Session session, EndpointConfig conf, @PathParam(PROJECT_ID_KEY) String projectId) {
         UserRole role = userUtil.getCreateUser(session.getUserPrincipal().getName(),
                                                (Boolean) conf.getUserProperties()
                                                              .get(WebSocketUserConfig.IS_ADMIN_ADMIN)).getRole();
+        Long pId = null;
         try {
-            this.projectId = Long.parseLong(projectId);
+            pId = Long.parseLong(projectId);
         } catch (NumberFormatException e) {
             log.debug("rejected connection because given id is not parsable: " + e.getMessage());
             try {
@@ -87,8 +85,8 @@ public class BookingsByProject {
             }
             log.debug("Rejected to open websocket to user " + session.getUserPrincipal().getName());
         }
-        if (session.isOpen()) {
-            this.session = session;
+        if (session.isOpen() && pId != null) {
+            session.getUserProperties().put(PROJECT_ID_KEY, pId);
         }
     }
 
@@ -108,10 +106,19 @@ public class BookingsByProject {
      * Sends all bookings to all sessions registered to this web socket.
      * @param projectId only 
      */
-    public void send(Long projectId) {
-        if (session != null && session.isOpen() && this.projectId != null && this.projectId.equals(projectId)) {
-            session.getAsyncRemote().sendObject(converter.from(null, repo.getBookingsByProjectId(projectId)));
-        }
+    public void send(final Long projectId) {
+        sessions.getAll().forEach(new Consumer<Session>() {
+
+            @Override
+            public void accept(Session session) {
+                Long id = (Long)session.getUserProperties().get(PROJECT_ID_KEY);
+                if (id != null && id.equals(projectId)) {
+                    session.getAsyncRemote().sendObject(converter.from(null, repo.getBookingsByProjectId(projectId)));
+                }
+
+            }
+        });
+
     }
 
     /**
