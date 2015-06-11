@@ -14,7 +14,6 @@ import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
-import org.codehaus.groovy.util.Finalizable;
 import org.slf4j.Logger;
 
 import com.prodyna.pac.timtracker.cdi.UserUtil;
