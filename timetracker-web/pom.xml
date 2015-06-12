@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>com.prodyna.pac.moritz</groupId>
 		<artifactId>timetracker</artifactId>
-		<version>1.1-SNAPSHOT</version>
+		<version>1.0</version>
 	</parent>
 	<artifactId>timetracker-web</artifactId>
 	<packaging>war</packaging>
