@@ -3,13 +3,14 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.prodyna.pac.moritz</groupId>
 	<artifactId>timetracker</artifactId>
-	<version>1.0-pre</version>
+	<version>1.0</version>
 	<packaging>pom</packaging>
 	<name>Timtracker</name>
 	<description>Moritz' timetracker</description>
 	<modules>
 		<module>timetracker-web</module>
 		<module>timetracker-backend</module>
+		<module>dml</module>
 	</modules>
 	<properties>
 		<compiler-plugin-version>3.3</compiler-plugin-version>

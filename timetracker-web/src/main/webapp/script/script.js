@@ -90,7 +90,6 @@ app.controller('allBookingsCtrl', function($scope, $http){
 	ws.onmessage = function(message){
 		$scope.$apply(function(){
 			$scope.bookingsList = message.data;
-			alert(message.data);
 		});
 		
 	};

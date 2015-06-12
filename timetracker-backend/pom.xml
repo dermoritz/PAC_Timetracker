@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.prodyna.pac.moritz</groupId>
 		<artifactId>timetracker</artifactId>
-		<version>1.0-pre</version>
+		<version>1.0</version>
 	</parent>
 	<artifactId>timetracker-backend</artifactId>
 	<packaging>war</packaging>

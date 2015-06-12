@@ -34,7 +34,7 @@ public abstract class EventRepositoryDecorator<T extends Identifiable> implement
     @Override
     public T store(T entity) {
         T stored = delegate.store(entity);
-        event.select(delegate.getType(), new Created.Literal()).fire(entity);
+        event.select(delegate.getType(), new Created.Literal()).fire(stored);
         return stored;
     }
     

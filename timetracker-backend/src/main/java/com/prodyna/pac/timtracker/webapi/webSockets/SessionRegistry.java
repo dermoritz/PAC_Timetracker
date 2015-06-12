@@ -6,11 +6,9 @@ import java.util.Set;
 
 import javax.ejb.Lock;
 import javax.ejb.LockType;
-import javax.inject.Singleton;
 import javax.websocket.Session;
 
-@Singleton
-public class SessionRegistry {
+public abstract class SessionRegistry {
     private final Set<Session> sessions = new HashSet<>();
 
     @Lock(LockType.READ)

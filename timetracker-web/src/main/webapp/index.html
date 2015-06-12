@@ -23,8 +23,8 @@
         <form ng-controller="createBookingCtrl" ng-submit="submit()">
             <div class="form-group">
                 <label for="project">project</label>
-                <input type="text" list="projects" class="form-control" ng-model="fields.project"/>
-                <datalist id="projects">
+                <input type="text" list="usersprojects" class="form-control" ng-model="fields.project"/>
+                <datalist id="usersprojects">
                     <option ng-repeat="project in projectsList">{{project.project.name}}</option>
                 </datalist>
             </div>
