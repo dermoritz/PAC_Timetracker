@@ -84,13 +84,14 @@ app.controller('myProjectsCtrl', function($scope, $http, currentUser){
 	});
 });
 
-app.controller('allBookingsCtrl', function($scope, $http){
+app.controller('allBookingsCtrl', function($scope, $http, $timeout){
 	$scope.bookingsList = [];
 	var ws = new WebSocket(wsRootUrl + '/allbookings');
 	ws.onmessage = function(message){
-		$scope.$apply(function(){
+		$timeout(function(){$rootScope.$apply(function(){
 			$scope.bookingsList = message.data;
-		});
+			
+		})}, 0);
 		
 	};
 	$http.get(rootUrl + '/timetracker/booking/all').success(function(response) {

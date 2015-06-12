@@ -1,6 +1,10 @@
 # Pac Timetracker
 
-This application is arose within the "Prodyna Architecture Certificate". It demonstrates the use of JavaEE 7 technologies to provide a RESTful back-end service in conjunction with a pure Html/Js (AngularJs, BootstrapCss) front-end leveraging the rest interface.
+This application arose within the "Prodyna Architecture Certificate". It demonstrates the use of JavaEE 7 technologies to provide a RESTful back-end service in conjunction with a pure Html/Js (AngularJs, BootstrapCss) front-end leveraging the rest interface.
+
+## State
+
+The back-end (JavaEE 7) is feature complete. The front-end (html5/angularJS) does not cover all features at the moment. The front end can be seen as a prototype providing the most important features. It will be expanded in future.  
 
 ## Gitflow
 
