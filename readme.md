@@ -42,7 +42,7 @@ Deploy the war files (one in each target folder) as usual. For wildfly you could
 
 ## Rest api
 
-the rest api is documented here: https://github.com/dermoritz/Pac_Timetracker/wiki/Timetracker-Rest-API
+The rest api is documented here: https://github.com/dermoritz/Pac_Timetracker/wiki/Timetracker-Rest-API. Provided websockets are documented here: https://github.com/dermoritz/Pac_Timetracker/wiki/Timetracker-Websockets.
 
  
  
