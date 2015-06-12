@@ -86,6 +86,7 @@ public class BookingsByProject {
         }
         if (session.isOpen() && pId != null) {
             session.getUserProperties().put(PROJECT_ID_KEY, pId);
+            sessions.add(session);
         }
     }
 
@@ -98,12 +99,13 @@ public class BookingsByProject {
      */
     @OnClose
     public void close(Session session, CloseReason reason) {
+        sessions.remove(session);
         log.debug("Session closed.");
     }
 
     /**
-     * Sends all bookings to all sessions registered to this web socket.
-     * @param projectId only 
+     * Sends all bookings to all sessions registered to this web socket for given project id.
+     * @param projectId project id
      */
     public void send(final Long projectId) {
         sessions.getAll().forEach(new Consumer<Session>() {
