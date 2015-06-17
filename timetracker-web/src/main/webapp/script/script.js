@@ -1,9 +1,9 @@
 /**
  * Created by moritz löser (moritz.loeser@prodyna.com) on 15.06.2015.
  */
-var rootUrl = "http://localhost:8080/timetracker-backend";
-var wsRootUrl = "ws://localhost:8080/timetracker-backend";
-var logOutUrl = "http://invalid:invalid@localhost:8080/timetracker-backend/timetracker/user/all";
+var rootUrl = "http://" + window.location.host + "/timetracker-backend";
+var wsRootUrl = "ws://" + window.location.host + "/timetracker-backend";
+var logOutUrl = "http://invalid:invalid@" + window.location.host + "/timetracker-backend/timetracker/user/current";
 
 var app = angular.module('timetracker', ['ui.bootstrap', 'ngWebSocket']);
 
@@ -29,7 +29,7 @@ app.controller('timetrackerCtrl', function ($scope, $http, currentUser, $filter,
 
         $scope.allBookingsList = {};
         var allBookingsWs = $websocket(wsRootUrl + '/allbookings');
-        allBookingsWs.onMessage(function(event){
+        allBookingsWs.onMessage(function (event) {
             $scope.allBookingsList = JSON.parse(event.data);
         });
 
@@ -45,7 +45,7 @@ app.controller('timetrackerCtrl', function ($scope, $http, currentUser, $filter,
         //projects
         $scope.allProjectsList = {};
         var allProjectsWs = $websocket(wsRootUrl + '/allprojects');
-        allProjectsWs.onMessage(function(event){
+        allProjectsWs.onMessage(function (event) {
             $scope.allProjectsList = JSON.parse(event.data);
         });
 
@@ -79,21 +79,21 @@ app.controller('timetrackerCtrl', function ($scope, $http, currentUser, $filter,
 
         $scope.allUsersList = {};
         var allUsersWs = $websocket(wsRootUrl + '/allusers');
-        allUsersWs.onMessage(function(event){
+        allUsersWs.onMessage(function (event) {
             $scope.allUsersList = JSON.parse(event.data);
         });
 
-        var updateAllUsers = function() {
-            $http.get(rootUrl + '/timetracker/user/all').success(function(response) {
+        var updateAllUsers = function () {
+            $http.get(rootUrl + '/timetracker/user/all').success(function (response) {
                 for (var i = 0; i < response.length; ++i)
                     $scope.allUsersList[response[i].name] = response[i];
             });
         };
         updateAllUsers();
 
-        var updateAllProjects = function(){
+        var updateAllProjects = function () {
             $scope.allProjectsList = {};
-            $http.get(rootUrl + '/timetracker/project/all').success(function(response) {
+            $http.get(rootUrl + '/timetracker/project/all').success(function (response) {
                 for (var i = 0; i < response.length; ++i)
                     $scope.allProjectsList[response[i].name] = response[i];
             });
@@ -101,17 +101,17 @@ app.controller('timetrackerCtrl', function ($scope, $http, currentUser, $filter,
         updateAllProjects();
 
         $scope.newUsersProject = {};
-        $scope.submitCreateUsersProject = function(){
+        $scope.submitCreateUsersProject = function () {
             var data = {
-                "user" : $scope.allUsersList[$scope.newUsersProject.user],
-                "project" : $scope.allProjectsList[$scope.newUsersProject.project]
+                "user": $scope.allUsersList[$scope.newUsersProject.user],
+                "project": $scope.allProjectsList[$scope.newUsersProject.project]
             };
             $http.post(rootUrl + "/timetracker/usersprojects", data).success(
-                function(answer, status) {
+                function (answer, status) {
                     $scope.createUsersProjectResult = status;
                     updateAllUsersProjects();
                     updateUsersProjects();
-                }).error(function(answer, status) {
+                }).error(function (answer, status) {
                     $scope.createUsersProjectResult = status;
                 });
         };
@@ -120,12 +120,12 @@ app.controller('timetrackerCtrl', function ($scope, $http, currentUser, $filter,
     if ($scope.isAdmin) {
         //manage users
         $scope.newUser = {};
-        $scope.submitCreateUser = function(){
+        $scope.submitCreateUser = function () {
             var data = $scope.newUser;
             $http.post(rootUrl + "/timetracker/user", data).success(
-                function(answer, status) {
+                function (answer, status) {
                     $scope.createUserResult = status;
-                }).error(function(answer, status) {
+                }).error(function (answer, status) {
                     $scope.createUserResult = status;
                 });
         };
