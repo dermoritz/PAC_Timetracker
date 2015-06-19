@@ -3,7 +3,7 @@ body {
 }
 
 form {
-    width: 30%;
+    max-width: 50em;
     margin-bottom: 30px;
 }
 
@@ -22,4 +22,8 @@ form {
 
 #welcome-msg  a {
     margin-top: -3px;
+}
+
+button {
+    width: 100%;
 }

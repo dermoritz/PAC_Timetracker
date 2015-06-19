@@ -171,11 +171,23 @@ app.controller('timetrackerCtrl', function ($scope, $http, currentUser, $filter,
         $scope.openedEnd = true;
     };
 
+    var initBookingForm = function () {
+        $scope.newBooking = {};
+        //timepicker values must be initialized
+        $scope.newBooking.startTime = new Date();
+        //ad 15 minutes to end to get vaild interval on init
+        $scope.newBooking.endTime = new Date(new Date().getTime() + 15*60000);
+    };
+    initBookingForm();
 
-    $scope.newBooking = {};
-    //timepicker values must be initialized
-    $scope.newBooking.startTime = new Date();
-    $scope.newBooking.endTime = new Date();
+    //either create mode or update mode
+    var switchEditMode = function (isUpdate) {
+        $scope.createDisabled = isUpdate;
+        $scope.updateDisabled = !isUpdate;
+        $scope.deleteDisabled = !isUpdate;
+    }
+    //on init create mode
+    switchEditMode(false);
 
 
     //create new booking
@@ -199,5 +211,56 @@ app.controller('timetrackerCtrl', function ($scope, $http, currentUser, $filter,
             });
     }
 
+    //fill form with booking clicked
+    $scope.bookingClicked = function (booking) {
+        $scope.newBooking = {};
+        $scope.newBooking.project = {};
+        $scope.newBooking.project = booking.usersProjects.project.name;
+        $scope.newBooking.id = booking.id;
+        $scope.newBooking.startDate = $filter('date')(booking.start, "yyyy-MM-dd");
+        $scope.newBooking.startTime = new Date(booking.start);
+        $scope.newBooking.endDate = $filter('date')(booking.end, "yyyy-MM-dd");
+        $scope.newBooking.endTime = new Date(booking.end);
+        //switch to update
+        switchEditMode(true);
+    };
+
+    $scope.resetBooking = function () {
+        initBookingForm();
+        //switch to create new
+        switchEditMode(false);
+    };
+
+    $scope.deleteBooking = function(){
+        $http.delete(rootUrl + "/timetracker/booking/" + $scope.newBooking.id).success(
+            function (answer, status) {
+                $scope.createBookingResult = status;
+                updateMyBookings();
+                initBookingForm();
+            }).error(function (answer, status) {
+                $scope.createBookingResult = status;
+            });
+    };
+
+    $scope.updateBooking = function(){
+        //convert date, time string to epoch time
+        var startDateF = $filter('date')($scope.newBooking.startDate, "MM dd, yyyy");
+        var startTimeF = $filter('date')($scope.newBooking.startTime, "HH:mm:ss")
+        var endDateF = $filter('date')($scope.newBooking.endDate, "MM dd, yyyy");
+        var endTimeF = $filter('date')($scope.newBooking.endTime, "HH:mm:ss")
+        var booking = {
+            "id": $scope.newBooking.id,
+            "usersProjects": $scope.usersprojectsList[$scope.newBooking.project],
+            "start": new Date(startDateF + " " + startTimeF).getTime(),
+            "end": new Date(endDateF + " " + endTimeF).getTime()
+        };
+        $http.put(rootUrl + "/timetracker/booking/" + $scope.newBooking.id, booking).success(
+            function (answer, status) {
+                $scope.createBookingResult = status;
+                updateMyBookings();
+            }).error(function (answer, status) {
+                $scope.createBookingResult = status;
+            });
+    };
 
 });
