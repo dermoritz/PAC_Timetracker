@@ -93,7 +93,7 @@ public class UsersProjectsResourceTest {
     public void usersProjectsLifeCycleJson() throws MalformedURLException {
         usersProjectsLifeCycle(MediaType.APPLICATION_JSON);
     }
-
+    
     @Test
     public void linkTest() throws MalformedURLException {
         UserRepresentation xmlUser = new UserRepresentation();

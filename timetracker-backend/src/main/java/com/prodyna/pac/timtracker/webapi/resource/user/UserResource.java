@@ -19,13 +19,14 @@ import org.slf4j.Logger;
 import com.prodyna.pac.timtracker.cdi.CurrentUser;
 import com.prodyna.pac.timtracker.model.Booking;
 import com.prodyna.pac.timtracker.model.BookingRepository;
-import com.prodyna.pac.timtracker.model.Project;
 import com.prodyna.pac.timtracker.model.User;
 import com.prodyna.pac.timtracker.model.UserRepository;
 import com.prodyna.pac.timtracker.model.UserRole;
 import com.prodyna.pac.timtracker.webapi.RepositoryResource;
 import com.prodyna.pac.timtracker.webapi.RepresentationConverter;
 import com.prodyna.pac.timtracker.webapi.resource.booking.BookingRepresentation;
+import com.prodyna.pac.timtracker.webapi.resource.booking.BookingResource;
+import com.prodyna.pac.timtracker.webapi.resource.users_projects.UsersProjectsResource;
 
 /**
  * Implements rest crud for {@link User} - relies on {@link RepositoryResource}.
@@ -52,6 +53,18 @@ public class UserResource extends RepositoryResource<User, UserRepresentation> {
 
     @Inject
     private Logger log;
+
+    /**
+     * Used to get links from it.
+     */
+    @Inject
+    private BookingResource bRes;
+
+    /**
+     * Used to get links from it.
+     */
+    @Inject
+    private UsersProjectsResource upRes;
 
     /**
      * Converts {@link Booking}<-> {@link BookingRepresentation} - used to get
@@ -87,14 +100,18 @@ public class UserResource extends RepositoryResource<User, UserRepresentation> {
         }
         // check if own id or manager or admin
         if (!ownManagerOrAdmin(userId)) {
-            log.debug("Rejected request by " + currentUser + " to get bookings for user by id " + userId
+            log.debug("Rejected request by " + currentUser
+                      + " to get bookings for user by id " + userId
                       + " (not own id, neither manager nor admin.)");
             return Response.status(Status.FORBIDDEN).build();
         }
-        Collection<BookingRepresentation> bookings = bookingConverter.from(getUriInfo(),
+        Collection<BookingRepresentation> bookings = bookingConverter.from(
+                                                                           getUriInfo(),
                                                                            bookingRepository.getBookingsByUserId(userId));
-        return Response.ok(new GenericEntity<Collection<BookingRepresentation>>(bookings) {/**/
-        }).type(getResourceMediaType()).build();
+        return Response
+                       .ok(new GenericEntity<Collection<BookingRepresentation>>(
+                                                                                bookings) {/**/
+                       }).type(getResourceMediaType()).build();
     }
 
     /**
@@ -110,7 +127,8 @@ public class UserResource extends RepositoryResource<User, UserRepresentation> {
     public Response getUserByName(@PathParam("user_name") String userName) {
         // check if own name or manager or admin
         if (!ownManagerOrAdmin(userName)) {
-            log.debug("Rejected request by " + currentUser + " to get user by name " + userName
+            log.debug("Rejected request by " + currentUser
+                      + " to get user by name " + userName
                       + " (not own name, neither manager nor admin.)");
             return Response.status(Status.FORBIDDEN).build();
         }
@@ -120,8 +138,7 @@ public class UserResource extends RepositoryResource<User, UserRepresentation> {
         }
         return Response.ok(getConverter().from(getUriInfo(), user))
                        .type(getResourceMediaType())
-                       .lastModified(user.getLastModified())
-                       .build();
+                       .lastModified(user.getLastModified()).build();
     }
 
     @Override
@@ -130,11 +147,17 @@ public class UserResource extends RepositoryResource<User, UserRepresentation> {
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
     public Response get(@PathParam("id") Long id) {
         if (!ownManagerOrAdmin(id)) {
-            log.debug("Rejected request by " + currentUser + " to get user by id " + id
+            log.debug("Rejected request by " + currentUser
+                      + " to get user by id " + id
                       + " (not own id, neither manager nor admin.)");
             return Response.status(Status.FORBIDDEN).build();
         }
-        return super.get(id);
+        Response response = super.get(id);
+        // add links for admin
+        if (currentUser.getRole().equals(UserRole.ADMIN)) {
+            return Response.fromResponse(response).links(putLink(id), deleteLink(id)).build();
+        }
+        return response;
     }
 
     /**
@@ -147,8 +170,9 @@ public class UserResource extends RepositoryResource<User, UserRepresentation> {
     public Response getCurrent() {
         return Response.ok(getConverter().from(getUriInfo(), currentUser))
                        .type(getResourceMediaType())
-                       .lastModified(currentUser.getLastModified())
-                       .build();
+                       .links(bRes.getUsersBookingsLink(currentUser.getId()),
+                              upRes.getUsersProjectsLink(currentUser.getId()))
+                       .lastModified(currentUser.getLastModified()).build();
     }
 
     @Override
@@ -157,7 +181,8 @@ public class UserResource extends RepositoryResource<User, UserRepresentation> {
         switch (method) {
         case HttpMethod.POST:
             // admins or managers are permitted to create users
-            if (user.getRole().equals(UserRole.ADMIN) || user.getRole().equals(UserRole.MANAGER)) {
+            if (user.getRole().equals(UserRole.ADMIN)
+                || user.getRole().equals(UserRole.MANAGER)) {
                 result = true;
             } else {
                 result = false;
@@ -165,7 +190,8 @@ public class UserResource extends RepositoryResource<User, UserRepresentation> {
             break;
         case HttpMethod.DELETE:
             // admins or managers are permitted to delete users
-            if (user.getRole().equals(UserRole.ADMIN) || user.getRole().equals(UserRole.MANAGER)) {
+            if (user.getRole().equals(UserRole.ADMIN)
+                || user.getRole().equals(UserRole.MANAGER)) {
                 result = true;
             } else {
                 result = false;
@@ -192,7 +218,8 @@ public class UserResource extends RepositoryResource<User, UserRepresentation> {
             break;
         case HttpMethod.PUT:
             // admins or managers are permitted to update users
-            if (user.getRole().equals(UserRole.ADMIN) || user.getRole().equals(UserRole.MANAGER)) {
+            if (user.getRole().equals(UserRole.ADMIN)
+                || user.getRole().equals(UserRole.MANAGER)) {
                 result = true;
             } else {
                 result = false;

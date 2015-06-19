@@ -27,10 +27,13 @@ public class UsersProjectsRepresentationConverter
 
     @Inject
     private UserRepresentationConverter uRepConv;
+    
+    @Inject
+    private Provider<UsersProjectsRepresentation> upRepProv;
         
     @Override
     public UsersProjectsRepresentation from(UriInfo uriInfo, UsersProjects source) {
-        UsersProjectsRepresentation usersProjectsRep = new UsersProjectsRepresentation(uriInfo);
+        UsersProjectsRepresentation usersProjectsRep = upRepProv.get();
         usersProjectsRep.setId(source.getId());
         usersProjectsRep.setProject(proRepConv.from(uriInfo, source.getProject()));
         usersProjectsRep.setUser(uRepConv.from(uriInfo, source.getUser()));

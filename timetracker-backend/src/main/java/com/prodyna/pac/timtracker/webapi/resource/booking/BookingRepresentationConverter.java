@@ -2,9 +2,8 @@ package com.prodyna.pac.timtracker.webapi.resource.booking;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.ws.rs.core.UriInfo;
-
-import org.slf4j.Logger;
 
 import com.prodyna.pac.timtracker.model.Booking;
 import com.prodyna.pac.timtracker.model.UsersProjects;
@@ -22,10 +21,13 @@ public class BookingRepresentationConverter extends RepresentationConverter.Base
     
     @Inject
     private UsersProjectsRepresentationConverter upRepConv;
+    
+    @Inject
+    private Provider<BookingRepresentation> brProv;
 
     @Override
     public BookingRepresentation from(UriInfo uriInfo, Booking source) {
-        BookingRepresentation bRep = new BookingRepresentation();
+        BookingRepresentation bRep = brProv.get();
         bRep.setEnd(source.getEnd());
         bRep.setStart(source.getStart());
         bRep.setId(source.getId());

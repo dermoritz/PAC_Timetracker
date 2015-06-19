@@ -3,7 +3,6 @@ package com.prodyna.pac.timtracker.webapi.resource.booking;
 import java.util.Date;
 
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.prodyna.pac.timtracker.model.Booking;
@@ -19,7 +18,6 @@ import com.prodyna.pac.timtracker.webapi.resource.users_projects.UsersProjectsRe
 @XmlRootElement(name = "booking", namespace = "urn:timetracker:booking")
 public class BookingRepresentation extends Linkable {
 
-
     @NotNull
     private Date start;
     
@@ -28,14 +26,6 @@ public class BookingRepresentation extends Linkable {
     
     @NotNull
     private UsersProjectsRepresentation usersProjects;
-    
-    public BookingRepresentation() {
-        this(null);
-    }
-
-    public BookingRepresentation(UriInfo uriInfo) {
-        super(uriInfo);
-    }
     
     /**
      * @return the start
@@ -135,7 +125,5 @@ public class BookingRepresentation extends Linkable {
         }
         return true;
     }
-    
-    
     
 }
