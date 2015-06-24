@@ -1,7 +1,7 @@
 /**
  * Created by moritz löser (moritz.loeser@prodyna.com) on 15.06.2015.
  */
-var rootUrl = "http://" + window.location.host + "/timetracker-backend";
+var rootUrl = window.location.protocol + "//" + window.location.host + "/timetracker-backend";
 var wsRootUrl = "ws://" + window.location.host + "/timetracker-backend";
 var logOutUrl = "http://invalid:invalid@" + window.location.host + "/timetracker-backend/timetracker/user/current";
 
