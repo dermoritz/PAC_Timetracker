@@ -2,8 +2,12 @@
  * Created by moritz löser (moritz.loeser@prodyna.com) on 15.06.2015.
  */
 var rootUrl = window.location.protocol + "//" + window.location.host + "/timetracker-backend";
-var wsRootUrl = "ws://" + window.location.host + "/timetracker-backend";
-var logOutUrl = "http://invalid:invalid@" + window.location.host + "/timetracker-backend/timetracker/user/current";
+var wsProtocol = "ws:";
+if(window.location.protocol == "https:"){
+	wsProtocol = "wss:";
+}
+var wsRootUrl = wsProtocol + "//" + window.location.host + "/timetracker-backend";
+var logOutUrl = window.location.protocol + "//invalid:invalid@" + window.location.host + "/timetracker-backend/timetracker/user/current";
 
 var app = angular.module('timetracker', ['ui.bootstrap', 'ngWebSocket']);
 
