@@ -10,6 +10,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.GenericEntity;
+import javax.ws.rs.core.Link;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -72,6 +73,20 @@ public class UsersProjectsResource extends RepositoryResource<UsersProjects, Use
                                                                           upRepository.getByUserId(userId));
         return Response.ok(new GenericEntity<Collection<UsersProjectsRepresentation>>(ups) {/**/
         }).type(getResourceMediaType()).build();
+    }
+    
+    /**
+     * Returns link to projects for given user.
+     * 
+     * @param id
+     *            id of user
+     * @return link to be used in header
+     */
+    public Link getUsersProjectsLink(Long id) {
+        return Link.fromUri(getUriInfo().getBaseUriBuilder()
+                                        .path(getResourceClass())
+                                        .path(getResourceClass(), "getUsersProjectsByUser")
+                                        .build(id)).rel("usersProjects").type(getResourceMediaType()).build();
     }
 
     @GET

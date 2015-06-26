@@ -1,176 +1,270 @@
 /**
- * 
+ * Created by moritz löser (moritz.loeser@prodyna.com) on 15.06.2015.
  */
-var rootUrl = "http://localhost:8080/timetracker-backend";
-var wsRootUrl = "ws://localhost:8080/timetracker-backend";
-var logOutUrl = "http://invalid:invalid@localhost:8080/timetracker-backend/timetracker/user/all";
+var rootUrl = window.location.protocol + "//" + window.location.host + "/timetracker-backend";
+var wsProtocol = "ws:";
+if(window.location.protocol == "https:"){
+	wsProtocol = "wss:";
+}
+var wsRootUrl = wsProtocol + "//" + window.location.host + "/timetracker-backend";
+var logOutUrl = window.location.protocol + "//invalid:invalid@" + window.location.host + "/timetracker-backend/timetracker/user/current";
 
-var app = angular.module('timetracker', [ 'ui.bootstrap' ]);
+var app = angular.module('timetracker', ['ui.bootstrap', 'ngWebSocket']);
 
 // renders current user available before others need it
-angular.element(document).ready(function() {
-	var initInjector = angular.injector([ 'ng' ]);
-	var $http = initInjector.get('$http');
-	$http.get(rootUrl + '/timetracker/user/current').then(function(response) {
-		app.constant('currentUser', response.data);
-		angular.bootstrap(document, [ 'timetracker' ]);
-	});
+angular.element(document).ready(function () {
+    var initInjector = angular.injector(['ng']);
+    var $http = initInjector.get('$http');
+    $http.get(rootUrl + '/timetracker/user/current').then(function (response) {
+        app.constant('currentUser', response.data);
+        angular.bootstrap(document, ['timetracker']);
+    });
 });
 
-app.controller('roleCtrl', function($scope, currentUser){
-	$scope.isNotManager = !("MANAGER"==currentUser.role) && !("ADMIN"==currentUser.role);
-	$scope.isNotAdmin = !("ADMIN"==currentUser.role);
-});
+app.controller('timetrackerCtrl', function ($scope, $http, currentUser, $filter, $websocket) {
+    $scope.url = logOutUrl;
+    $scope.currentUser = currentUser;
 
-app.controller('currentUserCtrl', function($scope, currentUser) {
-	$scope.url = logOutUrl;
-	$scope.currentUser = currentUser;
-});
+    $scope.isManager = ("MANAGER" == currentUser.role) || ("ADMIN" == currentUser.role);
+    $scope.isAdmin = ("ADMIN" == currentUser.role);
 
-app.controller('createBookingCtrl', function($scope, $http, $filter, currentUser) {
-	//list of projects for current user (usersprojects)
-	$scope.projectsList = {};
-	$http.get(rootUrl + '/timetracker/usersprojects/user/' + currentUser.id).success(function(response) {
-		for (var i = 0; i < response.length; ++i)
-			//map users project by projects name
-			$scope.projectsList[response[i].project.name] = response[i];
-	});
-	
-	//opens date picker for start
-	$scope.openStart = function($event) {
-		$event.preventDefault();
-		$event.stopPropagation();
-		$scope.openedStart = true;
-	};
-	//opens date picker for end
-	$scope.openEnd = function($event) {
-		$event.preventDefault();
-		$event.stopPropagation();
-		$scope.openedEnd = true;
-	};
-	
-	$scope.submit = function(){
-		//convert date, time string to epoch time
-		var startDateF = $filter('date')($scope.startDate, "MM dd, yyyy");
-		var startTimeF = $filter('date')($scope.startTime,"HH:mm:ss")
-		var endDateF = $filter('date')($scope.endDate, "MM dd, yyyy");
-		var endTimeF = $filter('date')($scope.endTime,"HH:mm:ss")
-		var booking = {
-			"usersProjects" :  $scope.projectsList[$scope.fields.project],
-			"start" : new Date(startDateF + " " + startTimeF).getTime(),
-			"end" : new Date(endDateF + " " + endTimeF).getTime()
-		};
-		$http.post(rootUrl + "/timetracker/booking", booking).success(
-				function(answer, status) {
-					$scope.result = status;
-				}).error(function(answer, status) {
-			$scope.result = status;
-		});
-	}
-	
-});
+    if ($scope.isManager) {
 
-app.controller('myBookingsCtrl', function($scope, $http, currentUser){
-	$scope.bookingsList = [];
-	$http.get(rootUrl + '/timetracker/booking/user/' + currentUser.id).success(function(response) {
-		$scope.bookingsList = response;
-	});
-});
 
-app.controller('myProjectsCtrl', function($scope, $http, currentUser){
-	$scope.projectsList = [];
-	$http.get(rootUrl + '/timetracker/usersprojects/user/' + currentUser.id).success(function(response) {
-		$scope.projectsList = response;
-	});
-});
+        $scope.allBookingsList = {};
+        var allBookingsWs = $websocket(wsRootUrl + '/allbookings');
+        allBookingsWs.onMessage(function (event) {
+            $scope.allBookingsList = JSON.parse(event.data);
+        });
 
-app.controller('allBookingsCtrl', function($scope, $http){
-	$scope.bookingsList = [];
-	var ws = new WebSocket(wsRootUrl + '/allbookings');
-	ws.onmessage = function(message){
-		$scope.$apply(function(){
-			$scope.bookingsList = message.data;
-		});
-		
-	};
-	$http.get(rootUrl + '/timetracker/booking/all').success(function(response) {
-		$scope.bookingsList = response;
-	});
-});
+        var updateAllBookings = function () {
+            //all bookings
 
-app.controller('usersController', function($scope, $http) {
-	$scope.usersList = [];
-	$http.get(rootUrl + '/timetracker/user/all').success(function(response) {
-		$scope.usersList = response;
-	});
-}
+            $http.get(rootUrl + '/timetracker/booking/all').success(function (response) {
+                $scope.allBookingsList = response;
+            })
+        };
+        updateAllBookings();
 
-);
+        //projects
+        $scope.allProjectsList = {};
+        var allProjectsWs = $websocket(wsRootUrl + '/allprojects');
+        allProjectsWs.onMessage(function (event) {
+            $scope.allProjectsList = JSON.parse(event.data);
+        });
 
-app.controller('createUserController', function($scope, $http) {
-	$scope.submit = function() {
-		var data = $scope.fields;
-		$scope.result = "?";
-		$http.post(rootUrl + "/timetracker/user", data).success(
-				function(answer, status) {
-					$scope.result = status;
-				}).error(function(answer, status) {
-			$scope.result = status;
-		});
-	}
-});
+        var updateAllProjects = function () {
+            $http.get(rootUrl + '/timetracker/project/all').success(function (response) {
+                $scope.allProjectsList = response;
+            });
+        };
+        updateAllProjects();
 
-app.controller('createProjectController', function($scope, $http) {
-	$scope.submit = function() {
-		var data = $scope.fields;
-		$scope.result = "?";
-		$http.post(rootUrl + "/timetracker/project", data).success(
-				function(answer, status) {
-					$scope.result = status;
-				}).error(function(answer, status) {
-			$scope.result = status;
-		});
-	}
-});
+        $scope.newProject = {};
+        //new project
+        $scope.submitCreateProject = function () {
+            var data = $scope.newProject;
+            $http.post(rootUrl + "/timetracker/project", data).success(
+                function (answer, status) {
+                    $scope.createProjectResult = status;
+                }).error(function (answer, status) {
+                    $scope.createProjectResult = status;
+                });
+        };
 
-app.controller('allProjectsController', function($scope, $http) {
-	$scope.projectsList = [];
-	$http.get(rootUrl + '/timetracker/project/all').success(function(response) {
-		$scope.projectsList = response;
-	});
-});
+        //users projects (register users to projects)
+        var updateAllUsersProjects = function () {
+            $scope.allUsersProjectsList = {};
+            $http.get(rootUrl + '/timetracker/usersprojects/all').success(function (response) {
+                $scope.allUsersProjectsList = response;
+            });
+        };
+        updateAllUsersProjects();
 
-app.controller('registerUserToProjectController', function($scope, $http) {
-	$scope.projectsList = {};
-	$http.get(rootUrl + '/timetracker/project/all').success(function(response) {
-		for (var i = 0; i < response.length; ++i)
-			$scope.projectsList[response[i].name] = response[i];
-	});
-	$scope.usersList = {};
-	$http.get(rootUrl + '/timetracker/user/all').success(function(response) {
-		for (var i = 0; i < response.length; ++i)
-			$scope.usersList[response[i].name] = response[i];
-	});
-	$scope.submit = function() {
-		var data = {
-			"user" : $scope.usersList[$scope.fields.user],
-			"project" : $scope.projectsList[$scope.fields.project]
-		};
+        $scope.allUsersList = {};
+        var allUsersWs = $websocket(wsRootUrl + '/allusers');
+        allUsersWs.onMessage(function (event) {
+            $scope.allUsersList = JSON.parse(event.data);
+        });
 
-		$scope.result = "?";
-		$http.post(rootUrl + "/timetracker/usersprojects", data).success(
-				function(answer, status) {
-					$scope.result = status;
-				}).error(function(answer, status) {
-			$scope.result = status;
-		});
-	}
-});
+        var updateAllUsers = function () {
+            $http.get(rootUrl + '/timetracker/user/all').success(function (response) {
+                for (var i = 0; i < response.length; ++i)
+                    $scope.allUsersList[response[i].name] = response[i];
+            });
+        };
+        updateAllUsers();
 
-app.controller('usersProjectsController', function($scope, $http) {
-	$scope.upList = [];
-	$http.get(rootUrl + '/timetracker/usersprojects/all').success(
-			function(response) {
-				$scope.upList = response;
-			});
+        var updateAllProjects = function () {
+            $scope.allProjectsList = {};
+            $http.get(rootUrl + '/timetracker/project/all').success(function (response) {
+                for (var i = 0; i < response.length; ++i)
+                    $scope.allProjectsList[response[i].name] = response[i];
+            });
+        };
+        updateAllProjects();
+
+        $scope.newUsersProject = {};
+        $scope.submitCreateUsersProject = function () {
+            var data = {
+                "user": $scope.allUsersList[$scope.newUsersProject.user],
+                "project": $scope.allProjectsList[$scope.newUsersProject.project]
+            };
+            $http.post(rootUrl + "/timetracker/usersprojects", data).success(
+                function (answer, status) {
+                    $scope.createUsersProjectResult = status;
+                    updateAllUsersProjects();
+                    updateUsersProjects();
+                }).error(function (answer, status) {
+                    $scope.createUsersProjectResult = status;
+                });
+        };
+
+    }
+    if ($scope.isAdmin) {
+        //manage users
+        $scope.newUser = {};
+        $scope.submitCreateUser = function () {
+            var data = $scope.newUser;
+            $http.post(rootUrl + "/timetracker/user", data).success(
+                function (answer, status) {
+                    $scope.createUserResult = status;
+                }).error(function (answer, status) {
+                    $scope.createUserResult = status;
+                });
+        };
+
+    }
+
+
+    //my bookings
+    //update my bookings list
+    var updateMyBookings = function () {
+        $scope.myBookingsList = [];
+        $http.get(rootUrl + '/timetracker/booking/user/' + currentUser.id).success(function (response) {
+            $scope.myBookingsList = response;
+        });
+    };
+    //update on load
+    updateMyBookings();
+
+    //
+    //list of projects for current user (usersprojects)
+    var updateUsersProjects = function () {
+        $scope.usersprojectsList = {};
+        $http.get(rootUrl + '/timetracker/usersprojects/user/' + currentUser.id).success(function (response) {
+            for (var i = 0; i < response.length; ++i)
+                //map users project by projects name
+                $scope.usersprojectsList[response[i].project.name] = response[i];
+        })
+    };
+    //update on load
+    updateUsersProjects();
+
+
+    //opens date picker for start
+    $scope.openStart = function ($event) {
+        $event.preventDefault();
+        $event.stopPropagation();
+        $scope.openedStart = true;
+    };
+    //opens date picker for end
+    $scope.openEnd = function ($event) {
+        $event.preventDefault();
+        $event.stopPropagation();
+        $scope.openedEnd = true;
+    };
+
+    var initBookingForm = function () {
+        $scope.newBooking = {};
+        //timepicker values must be initialized
+        $scope.newBooking.startTime = new Date();
+        //ad 15 minutes to end to get vaild interval on init
+        $scope.newBooking.endTime = new Date(new Date().getTime() + 15*60000);
+    };
+    initBookingForm();
+
+    //either create mode or update mode
+    var switchEditMode = function (isUpdate) {
+        $scope.createDisabled = isUpdate;
+        $scope.updateDisabled = !isUpdate;
+        $scope.deleteDisabled = !isUpdate;
+    }
+    //on init create mode
+    switchEditMode(false);
+
+
+    //create new booking
+    $scope.submitCreateBooking = function () {
+        //convert date, time string to epoch time
+        var startDateF = $filter('date')($scope.newBooking.startDate, "MM dd, yyyy");
+        var startTimeF = $filter('date')($scope.newBooking.startTime, "HH:mm:ss")
+        var endDateF = $filter('date')($scope.newBooking.endDate, "MM dd, yyyy");
+        var endTimeF = $filter('date')($scope.newBooking.endTime, "HH:mm:ss")
+        var booking = {
+            "usersProjects": $scope.usersprojectsList[$scope.newBooking.project],
+            "start": new Date(startDateF + " " + startTimeF).getTime(),
+            "end": new Date(endDateF + " " + endTimeF).getTime()
+        };
+        $http.post(rootUrl + "/timetracker/booking", booking).success(
+            function (answer, status) {
+                $scope.createBookingResult = status;
+                updateMyBookings();
+            }).error(function (answer, status) {
+                $scope.createBookingResult = status;
+            });
+    }
+
+    //fill form with booking clicked
+    $scope.bookingClicked = function (booking) {
+        $scope.newBooking = {};
+        $scope.newBooking.project = {};
+        $scope.newBooking.project = booking.usersProjects.project.name;
+        $scope.newBooking.id = booking.id;
+        $scope.newBooking.startDate = $filter('date')(booking.start, "yyyy-MM-dd");
+        $scope.newBooking.startTime = new Date(booking.start);
+        $scope.newBooking.endDate = $filter('date')(booking.end, "yyyy-MM-dd");
+        $scope.newBooking.endTime = new Date(booking.end);
+        //switch to update
+        switchEditMode(true);
+    };
+
+    $scope.resetBooking = function () {
+        initBookingForm();
+        //switch to create new
+        switchEditMode(false);
+    };
+
+    $scope.deleteBooking = function(){
+        $http.delete(rootUrl + "/timetracker/booking/" + $scope.newBooking.id).success(
+            function (answer, status) {
+                $scope.createBookingResult = status;
+                updateMyBookings();
+                initBookingForm();
+            }).error(function (answer, status) {
+                $scope.createBookingResult = status;
+            });
+    };
+
+    $scope.updateBooking = function(){
+        //convert date, time string to epoch time
+        var startDateF = $filter('date')($scope.newBooking.startDate, "MM dd, yyyy");
+        var startTimeF = $filter('date')($scope.newBooking.startTime, "HH:mm:ss")
+        var endDateF = $filter('date')($scope.newBooking.endDate, "MM dd, yyyy");
+        var endTimeF = $filter('date')($scope.newBooking.endTime, "HH:mm:ss")
+        var booking = {
+            "id": $scope.newBooking.id,
+            "usersProjects": $scope.usersprojectsList[$scope.newBooking.project],
+            "start": new Date(startDateF + " " + startTimeF).getTime(),
+            "end": new Date(endDateF + " " + endTimeF).getTime()
+        };
+        $http.put(rootUrl + "/timetracker/booking/" + $scope.newBooking.id, booking).success(
+            function (answer, status) {
+                $scope.createBookingResult = status;
+                updateMyBookings();
+            }).error(function (answer, status) {
+                $scope.createBookingResult = status;
+            });
+    };
+
 });

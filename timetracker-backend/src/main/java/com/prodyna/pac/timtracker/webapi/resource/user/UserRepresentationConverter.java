@@ -1,6 +1,8 @@
 package com.prodyna.pac.timtracker.webapi.resource.user;
 
 import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.ws.rs.core.UriInfo;
 
 import com.prodyna.pac.timtracker.model.User;
@@ -16,6 +18,9 @@ import com.prodyna.pac.timtracker.webapi.RepresentationConverter;
 @RequestScoped
 public class UserRepresentationConverter extends RepresentationConverter.Base<UserRepresentation, User> {
 
+	@Inject
+	private Provider<UserRepresentation> urProv;
+	
     /**
      * Constructs this by using super with {@link UserRepresentation} and
      * {@link User}.
@@ -26,7 +31,7 @@ public class UserRepresentationConverter extends RepresentationConverter.Base<Us
 
     @Override
     public UserRepresentation from(UriInfo uriInfo, User source) {
-        UserRepresentation rep = new UserRepresentation();
+        UserRepresentation rep = urProv.get();
         rep.setId(source.getId());
         rep.setName(source.getName());
         rep.setRole(roleToString(source.getRole()));

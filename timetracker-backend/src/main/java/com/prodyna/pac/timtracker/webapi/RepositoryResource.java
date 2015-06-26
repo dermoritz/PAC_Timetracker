@@ -14,6 +14,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.Link;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -241,27 +242,28 @@ public abstract class RepositoryResource<DOMAIN extends Identifiable & Timestamp
         }
 
         DOMAIN updatedEntity = getConverter().update(uriInfo, representation, entity);
-        getRepository().store(updatedEntity);
+        DOMAIN storedEntity = getRepository().store(updatedEntity);
 
-        return Response.noContent().build();
+        return Response.noContent().links(getLink(storedEntity.getId())).build();
     }
 
     // Internal Helpers
 
     /**
-     *  
+     * 
      * @return array of accepted/sent media types
      */
-    protected String[] getMediaTypes(){
-        return new String[]{MediaType.APPLICATION_JSON + getMediaSupType(), MediaType.APPLICATION_XML + getMediaSupType()};
+    protected String[] getMediaTypes() {
+        return new String[] {MediaType.APPLICATION_JSON + getMediaSupType(),
+                             MediaType.APPLICATION_XML + getMediaSupType()};
     }
-    
+
     /**
      * 
      * @return last part for media type e.g. "; type=booking"
      */
     protected abstract String getMediaSupType();
-    
+
     /**
      * Tries to match media type of request with available (by Resource) types.
      * If no match is found the first type is returned.
@@ -314,10 +316,66 @@ public abstract class RepositoryResource<DOMAIN extends Identifiable & Timestamp
         return currentUser.getId().equals(userId) || currentUser.getRole().equals(UserRole.MANAGER)
                || currentUser.getRole().equals(UserRole.ADMIN);
     }
-    
+
     public boolean ownManagerOrAdmin(String userName) {
         return currentUser.getName().equals(userName) || currentUser.getRole().equals(UserRole.MANAGER)
                || currentUser.getRole().equals(UserRole.ADMIN);
     }
 
+    /**
+     * Link to get resource of given id.
+     * 
+     * @param id
+     *            id of resource
+     * @return Link to be used in header.
+     */
+    protected Link getLink(Long id) {
+        return Link.fromUri(getUriInfo().getBaseUriBuilder()
+                                        .path(getResourceClass())
+                                        .path(getResourceClass(), "get")
+                                        .build(id)).rel("get").type(getResourceMediaType()).build();
+    }
+
+    /**
+     * Link to update resource of given id.
+     * 
+     * @param id
+     *            id of resource
+     * @return Link to be used in header.
+     */
+    protected Link putLink(Long id) {
+        return Link.fromUri(getUriInfo().getBaseUriBuilder()
+                                        .path(getResourceClass())
+                                        .path(getResourceClass(), "update")
+                                        .build(id)).rel("put").type(getResourceMediaType()).build();
+    }
+
+    /**
+     * Link to delete resource of given id.
+     * 
+     * @param id
+     *            id of resource
+     * @return Link to be used in header.
+     */
+    protected Link deleteLink(Long id) {
+        return Link.fromUri(getUriInfo().getBaseUriBuilder()
+                                        .path(getResourceClass())
+                                        .path(getResourceClass(), "delete")
+                                        .build(id)).rel("delete").type(getResourceMediaType()).build();
+    }
+    
+    /**
+     * Link to delete resource of given id.
+     * 
+     * @param id
+     *            id of resource
+     * @return Link to be used in header.
+     */
+    protected Link createLink() {
+        return Link.fromUri(getUriInfo().getBaseUriBuilder()
+                                        .path(getResourceClass())
+                                        .path(getResourceClass(), "create")
+                                        .build()).rel("post").type(getResourceMediaType()).build();
+    }
+    
 }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html ng-controller="timetrackerCtrl">
 <head>
     <meta charset="ISO-8859-1">
     <title>Timetracker</title>
@@ -7,114 +7,140 @@
     <link rel="stylesheet" href="styles.css"/>
     <script src="lib/dependencies/angular.min.js"></script>
     <script src="lib/dependencies/ui-bootstrap-tpls.min.js"></script>
+    <script src="lib/dependencies/angular-websocket.min.js"></script>
     <script type="text/javascript" src="script/script.js"></script>
 </head>
-<body ng-controller="roleCtrl">
+<body>
 <div ng-if="initialLoad">loading ...</div>
 <div ng-cloak>
-    <h3 id="welcome-msg" ng-controller="currentUserCtrl">Welcome {{currentUser.name}} your are {{currentUser.role}}.
+    <h3 id="welcome-msg">Welcome {{currentUser.name}} your are {{currentUser.role}}.
         <a class="btn btn-default btn-sm" href={{url}}>
             <span class="glyphicon glyphicon-log-out"></span> Logout
         </a>
     </h3>
 
-<tabset>
-    <tab heading="my bookings" active=true>
-        <form ng-controller="createBookingCtrl" ng-submit="submit()">
-            <div class="form-group">
-                <label for="project">project</label>
-                <input type="text" list="usersprojects" class="form-control" ng-model="fields.project"/>
-                <datalist id="usersprojects">
-                    <option ng-repeat="project in projectsList">{{project.project.name}}</option>
-                </datalist>
-            </div>
-            <div class="form-group">
-                <label for="start">start time</label>
-                <div class="row">
-                    <div class="col-md-9">
-                        <div class="input-group">
-                            <input type="text" class="form-control" datepicker-popup="yyyy-MM-dd" ng-model="startDate" 
-                                    is-open="openedStart" ng-required="true" close-text="close!" />
+    <tabset>
+        <tab heading="my bookings" active=true>
+            <form ng-submit="submitCreateBooking()">
+                <div class="form-group">
+                    <div class="row">
+                        <div class="col-md-10">
+                            <label for="project">project</label>
+                            <input type="text" list="usersprojects" class="form-control" ng-model="newBooking.project" ng-disabled="createDisabled"/>
+                            <datalist id="usersprojects">
+                                <option ng-repeat="usersproject in usersprojectsList">{{usersproject.project.name}}</option>
+                            </datalist>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="projectId">id</label>
+                            <input type="text" class="form-control" ng-model="newBooking.id" disabled="disabled"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="start">start time</label>
+
+                    <div class="row">
+                        <div class="col-md-10">
+                            <div class="input-group">
+                                <input type="text" class="form-control" datepicker-popup="yyyy-MM-dd"
+                                       ng-model="newBooking.startDate"
+                                       is-open="openedStart" ng-required="true" close-text="close!"/>
                             <span class="input-group-btn">
                                 <button type="button" class="btn btn-default" ng-click="openStart($event)">
                                     <i class="glyphicon glyphicon-calendar"></i>
                                 </button>
                             </span>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <timepicker id="startTime" ng-model="newBooking.startTime"
+                                        show-meridian="false"></timepicker>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <timepicker id="startTime" ng-model="startTime" show-meridian="false"></timepicker>
-                    </div>
                 </div>
-            </div>
-            <div class="form-group">
-                <label for="end">end time</label>
-                <div class="row">
-                    <div class="col-md-9">
-                        <div class="input-group">
-                             <input type="text" class="form-control" datepicker-popup="yyyy-MM-dd" ng-model="endDate" 
-                                    is-open="openedEnd" ng-required="true" close-text="close!" />
+                <div class="form-group">
+                    <label for="end">end time</label>
+
+                    <div class="row">
+                        <div class="col-md-10">
+                            <div class="input-group">
+                                <input type="text" class="form-control" datepicker-popup="yyyy-MM-dd"
+                                       ng-model="newBooking.endDate"
+                                       is-open="openedEnd" ng-required="true" close-text="close!"/>
                              <span class="input-group-btn">
                                  <button type="button" class="btn btn-default" ng-click="openEnd($event)">
-                                    <i class="glyphicon glyphicon-calendar"></i>
-                                </button>
+                                     <i class="glyphicon glyphicon-calendar"></i>
+                                 </button>
                             </span>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <timepicker id="endTime" ng-model="newBooking.endTime" show-meridian="false"></timepicker>
                         </div>
                     </div>
-                    <div class="col-md-3">                            
-                        <timepicker id="endTime" ng-model="endTime" show-meridian="false"></timepicker>
+                </div>
+                <div class="row">
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary" ng-disabled="createDisabled">create!</button>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-default"  ng-disabled="updateDisabled" ng-click="updateBooking()">update!</button>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-default" ng-click="resetBooking()">reset!</button>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-default" ng-disabled="deleteDisabled" ng-click="deleteBooking()">delete!</button>
+                    </div>
+                    <div class="col-md-4">
+                        <input class="form-control" type="text" disabled="disabled" ng-value="createBookingResult"
+                               placeholder="result"/>
                     </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary">create!</button>
-                </div>
-                <div class="col-md-10">
-                    <input class="form-control" type="text" disabled="disabled" ng-value="result" placeholder="result"/>
-                </div>
-            </div>
-        </form>
-        <table ng-controller="myBookingsCtrl" class="table table-striped">
-            <thead>
+            </form>
+            <table class="table table-striped">
+                <thead>
                 <tr>
                     <th>#</th>
+                    <th>id</th>
                     <th>project</th>
                     <th>start</th>
                     <th>end</th>
                 </tr>
-            </thead>
-            <tbody>
-                <tr ng-repeat="booking in bookingsList">
+                </thead>
+                <tbody>
+                <tr ng-repeat="booking in myBookingsList" ng-click="bookingClicked(booking)">
                     <td>{{$index + 1}}</td>
+                    <td>{{booking.id}}</td>
                     <td>{{booking.usersProjects.project.name}}</td>
                     <td>{{booking.start | date:'yyyy-MM-dd HH:mm:ss' }}</td>
                     <td>{{booking.end | date:'yyyy-MM-dd HH:mm:ss' }}</td>
                 </tr>
-            </tbody>
-        </table>
-    </tab>
-    <tab heading="my projects">
-        <table ng-controller="myProjectsCtrl" class="table table-striped">
-            <thead>
+                </tbody>
+            </table>
+        </tab>
+        <tab heading="my projects">
+            <table class="table table-striped">
+                <thead>
                 <tr>
                     <th>#</th>
                     <th>name</th>
                     <th>description</th>
                 </tr>
-            </thead>
-            <tbody>
-                <tr ng-repeat="project in projectsList">
+                </thead>
+                <tbody>
+                <tr ng-repeat="usersproject in usersprojectsList">
                     <td>{{$index + 1}}</td>
-                    <td>{{project.project.name}}</td>
-                    <td>{{project.project.description}}</td>
+                    <td>{{usersproject.project.name}}</td>
+                    <td>{{usersproject.project.description}}</td>
                 </tr>
-            </tbody>
-        </table>
-    </tab> 
-    <tab heading="all bookings" ng-hide="isNotManager">
-        <table ng-controller="allBookingsCtrl" class="table table-striped">
-            <thead>
+                </tbody>
+            </table>
+        </tab>
+        <tab heading="all bookings" ng-show="isManager">
+            <table class="table table-striped">
+                <thead>
                 <tr>
                     <th>#</th>
                     <th>user</th>
@@ -122,143 +148,146 @@
                     <th>start</th>
                     <th>end</th>
                 </tr>
-            </thead>
-            <tbody>
-                <tr ng-repeat="booking in bookingsList">
+                </thead>
+                <tbody>
+                <tr ng-repeat="booking in allBookingsList">
                     <td>{{$index + 1}}</td>
                     <td>{{booking.usersProjects.user.name}}</td>
                     <td>{{booking.usersProjects.project.name}}</td>
                     <td>{{booking.start | date:'yyyy-MM-dd HH:mm:ss' }}</td>
                     <td>{{booking.end | date:'yyyy-MM-dd HH:mm:ss' }}</td>
                 </tr>
-            </tbody>
-        </table>
-    </tab>
-    <tab heading="all projects" ng-hide="isNotManager">
-        <form ng-controller="createProjectController" ng-submit="submit()">
-            <div class="form-group">
-                <label for="projectName">project name</label>
-                <input ng-model="fields.name" type="text" class="form-control"/>
+                </tbody>
+            </table>
+        </tab>
+        <tab heading="all projects" ng-show="isManager">
+            <form ng-submit="submitCreateProject()">
+                <div class="form-group">
+                    <label for="projectName">project name</label>
+                    <input ng-model="newProject.name" type="text" class="form-control"/>
 
-                <p class="help-block">must be unique</p>
-            </div>
-            <div class="form-group">
-                <label for="projectDescription">description</label>
-                <input ng-model="fields.description" type="text" class="form-control"/>
-            </div>
-            <div class="row">
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary">create!</button>
+                    <p class="help-block">must be unique</p>
                 </div>
-                <div class="col-md-10">
-                    <input class="form-control" type="text" disabled="disabled" ng-value="result" placeholder="result"/>
+                <div class="form-group">
+                    <label for="projectDescription">description</label>
+                    <input ng-model="newProject.description" type="text" class="form-control"/>
                 </div>
-            </div>
-        </form>
-        <table ng-controller="allProjectsController" class="table table-striped">
-            <thead>
-            <tr>
-                <th>#</th>
-                <th>name</th>
-                <th>description</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr ng-repeat="project in projectsList">
-                <td>{{$index + 1}}</td>
-                <td>{{project.name}}</td>
-                <td>{{project.description}}</td>
-            </tr>
-            </tbody>
-        </table>
-    </tab>
-    <tab heading="register users to projects" ng-hide="isNotManager">
-        <form ng-controller="registerUserToProjectController" ng-submit="submit()">
-            <div class="form-group">
-                <label for="user">user</label>
-                <input type="text" list="users" class="form-control" ng-model="fields.user"/>
-                <datalist id="users">
-                    <option ng-repeat="user in usersList">{{user.name}}</option>
-                </datalist>
-            </div>
-            <div class="form-group">
-                <label for="project">project</label>
-                <input type="text" list="projects" class="form-control" ng-model="fields.project"/>
-                <datalist id=projects>
-                    <option ng-repeat="project in projectsList">{{project.name}}</option>
-                </datalist>
-            </div>
-            <div class="row">
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary">register!</button>
+                <div class="row">
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary">create!</button>
+                    </div>
+                    <div class="col-md-10">
+                        <input class="form-control" type="text" disabled="disabled" ng-value="createProjectResult"
+                               placeholder="result"/>
+                    </div>
                 </div>
-                <div class="col-md-10">
-                    <input class="form-control" type="text" disabled="disabled" ng-value="result" placeholder="result"/>
+            </form>
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>name</th>
+                    <th>description</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="project in allProjectsList">
+                    <td>{{$index + 1}}</td>
+                    <td>{{project.name}}</td>
+                    <td>{{project.description}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </tab>
+        <tab heading="register users to projects" ng-show="isManager">
+            <form ng-submit="submitCreateUsersProject()">
+                <div class="form-group">
+                    <label for="user">user</label>
+                    <input type="text" list="users" class="form-control" ng-model="newUsersProject.user"/>
+                    <datalist id="users">
+                        <option ng-repeat="user in allUsersList">{{user.name}}</option>
+                    </datalist>
                 </div>
-            </div>
-        </form>
-        <table ng-controller="usersProjectsController" class="table table-striped">
-            <thead>
-            <tr>
-                <th>#</th>
-                <th>project</th>
-                <th>user</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr ng-repeat="usersProject in upList">
-                <td>{{$index + 1}}</td>
-                <td>{{usersProject.project.name}}</td>
-                <td>{{usersProject.user.name}}</td>
-            </tr>
-            </tbody>
-        </table>
-    </tab> 
-    <tab heading="Manage users" ng-hide="isNotAdmin">
-        <form ng-controller="createUserController" ng-submit="submit()">
-            <div class="form-group">
-                <label for="name">user name</label>
-                <input ng-model="fields.name" type="text" class="form-control" />
-            </div>
-            <div class="form-group">
-            <label for="role">role</label>
-            <select ng-model="fields.role" class="form-control">
-                <option>USER</option>
-                <option>MANAGER</option>
-                <option>ADMIN</option>
-            </select>
-            </div>
-            <div class="row">
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary">create!</button>
+                <div class="form-group">
+                    <label for="project">project</label>
+                    <input type="text" list="projects" class="form-control" ng-model="newUsersProject.project"/>
+                    <datalist id=projects>
+                        <option ng-repeat="project in allProjectsList">{{project.name}}</option>
+                    </datalist>
                 </div>
-                <div class="col-md-10">
-                    <input class="form-control" type="text" disabled="disabled" ng-value="result" placeholder="result"/>
+                <div class="row">
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary">register!</button>
+                    </div>
+                    <div class="col-md-10">
+                        <input class="form-control" type="text" disabled="disabled" ng-value="createUsersProjectResult"
+                               placeholder="result"/>
+                    </div>
                 </div>
-            </div>
-        </form>
-        <table ng-controller="usersController" class="table table-striped">
-            <thead>
+            </form>
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>project</th>
+                    <th>user</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="usersProject in allUsersProjectsList">
+                    <td>{{$index + 1}}</td>
+                    <td>{{usersProject.project.name}}</td>
+                    <td>{{usersProject.user.name}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </tab>
+        <tab heading="manage users" ng-show="isAdmin">
+            <form ng-submit="submitCreateUser()">
+                <div class="form-group">
+                    <label for="name">user name</label>
+                    <input ng-model="newUser.name" type="text" class="form-control"/>
+
+                    <p class="help-block">must be unique</p>
+                </div>
+                <div class="form-group">
+                    <label for="role">role</label>
+                    <select ng-model="newUser.role" class="form-control">
+                        <option>USER</option>
+                        <option>MANAGER</option>
+                        <option>ADMIN</option>
+                    </select>
+                </div>
+                <div class="row">
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-primary">create!</button>
+                    </div>
+                    <div class="col-md-10">
+                        <input class="form-control" type="text" disabled="disabled" ng-value="createUserResult"
+                               placeholder="result"/>
+                    </div>
+                </div>
+            </form>
+            <table class="table table-striped">
+                <thead>
                 <tr>
                     <th>#</th>
                     <th>id</th>
-                    <th>link</th>
                     <th>name</th>
                     <th>role</th>
                 </tr>
-            </thead>
-            <tbody>
-                <tr ng-repeat="user in usersList">
+                </thead>
+                <tbody>
+                <tr ng-repeat="user in allUsersList">
                     <td>{{$index + 1}}</td>
                     <td>{{user.id}}</td>
-                    <td>{{user.self}}</td>
                     <td>{{user.name}}</td>
                     <td>{{user.role}}</td>
                 </tr>
-            </tbody>
-        </table>
-     </tab>
-</tabset>
+                </tbody>
+            </table>
+        </tab>
+    </tabset>
 </div>
 </body>
 </html>

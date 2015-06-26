@@ -2,6 +2,7 @@ package com.prodyna.pac.timtracker.webapi;
 
 import static com.jayway.restassured.RestAssured.given;
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
@@ -22,10 +23,9 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import com.jayway.restassured.response.Response;
 import com.prodyna.pac.timtracker.cdi.CurrentUserProducer;
 import com.prodyna.pac.timtracker.model.Booking;
 import com.prodyna.pac.timtracker.model.util.PersistenceArquillianContainer;
@@ -153,8 +153,11 @@ public class BookingResourceTest {
 
         fetchedBooking.setStart(newStart);
         fetchedBooking.setEnd(newEnd);
-        given().contentType(mediaType).body(fetchedBooking).then().statusCode(Status.NO_CONTENT.getStatusCode()).when()
+        Response response = given().contentType(mediaType).body(fetchedBooking).then().statusCode(Status.NO_CONTENT.getStatusCode()).when()
                .put(uriBooking);
+        //check if link is set
+        String header = response.getHeader("Link");
+        assertThat(header, containsString(uriBooking));
 
         BookingRepresentation updatedProject = given().then().contentType(mediaType)
                                                       .statusCode(Status.OK.getStatusCode())

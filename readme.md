@@ -1,6 +1,24 @@
+
+
+
 # Pac Timetracker
 
-This application is arose within the "Prodyna Architecture Certificate". It demonstrates the use of JavaEE 7 technologies to provide a RESTful back-end service in conjunction with a pure Html/Js (AngularJs, BootstrapCss) front-end leveraging the rest interface.
+This application arose within the "Prodyna Architecture Certificate". It demonstrates the use of JavaEE 7 technologies to provide a RESTful back-end service in conjunction with a pure Html/Js (AngularJs, BootstrapCss) front-end leveraging the rest interface.
+
+
+##History
+
+**new in 1.1:** 
+
+- The url to backend api is not more hard coded but uses "window.location". Thus back end and front end must be served from same server (or same location).
+
+- added complete crud for booking into front end
+
+- Ci via [travis](https://travis-ci.org/dermoritz/Pac_Timetracker)
+
+## State
+
+The back-end (JavaEE 7) is feature complete. The front-end (html5/angularJS) does not cover all features at the moment. The front end can be seen as a prototype providing the most important features. It will be expanded in future.  
 
 ## Gitflow
 
@@ -30,7 +48,7 @@ This application was tested on Wildfly. I will describe the deployment process f
 
 #### Database
 
-The application relies on a datasource with path: `java:jboss/datasources/timetracker`. It should be a MySQL database since DB-Dialect is set to MySql for Schemageneration.
+The application relies on a datasource with path: `java:jboss/datasources/timetracker`. It should be a MySQL database since DB-Dialect is set to MySql for Schemageneration. **new in 1.1:** There is a profile "generateDDL". If activated (-PgenerateDDL) an alternate persistence configuration will be packaged that does not alter the database. On start of the application ddl scripts to build the database and drop the database will be generated and put into maven build's target path of timetracker-backend.  
 
 #### Security
 
@@ -42,7 +60,7 @@ Deploy the war files (one in each target folder) as usual. For wildfly you could
 
 ## Rest api
 
-the rest api is documented here: https://github.com/dermoritz/Pac_Timetracker/wiki/Timetracker-Rest-API
+The rest api is documented here: https://github.com/dermoritz/Pac_Timetracker/wiki/Timetracker-Rest-API. Provided websockets are documented here: https://github.com/dermoritz/Pac_Timetracker/wiki/Timetracker-Websockets.
 
  
  

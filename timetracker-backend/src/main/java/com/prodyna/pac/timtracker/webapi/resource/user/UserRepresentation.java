@@ -1,10 +1,8 @@
 package com.prodyna.pac.timtracker.webapi.resource.user;
 
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.prodyna.pac.timtracker.persistence.Identifiable;
 import com.prodyna.pac.timtracker.webapi.Linkable;
 
 /**
@@ -16,19 +14,12 @@ import com.prodyna.pac.timtracker.webapi.Linkable;
 @XmlRootElement(name = "user", namespace = "urn:timetracker:user")
 public class UserRepresentation extends Linkable {
 
+
     @NotNull
     private String name;
 
     @NotNull
     private String role;
-
-    public UserRepresentation() {
-        this(null);
-    }
-    
-    public UserRepresentation(UriInfo uriInfo) {
-        super(uriInfo);
-    }
     
     public String getName() {
         return name;
@@ -94,4 +85,5 @@ public class UserRepresentation extends Linkable {
         }
         return true;
     }
+
 }

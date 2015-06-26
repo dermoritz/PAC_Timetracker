@@ -16,6 +16,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.GenericEntity;
+import javax.ws.rs.core.Link;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -44,20 +45,18 @@ public class BookingResource extends RepositoryResource<Booking, BookingRepresen
     private BookingRepository bookingRepo;
 
     private static final String MEDIA_SUBTYPE = "; type=booking";
-    
+
     /**
      * Creates {@link RepositoryResource} typed for user.
      */
     public BookingResource() {
         super(BookingResource.class, Booking.class, BookingRepresentation.class);
     }
-    
 
     @Override
     protected String getMediaSupType() {
         return MEDIA_SUBTYPE;
     }
-
 
     /**
      * 
@@ -81,6 +80,20 @@ public class BookingResource extends RepositoryResource<Booking, BookingRepresen
                                                                          bookingRepo.getBookingsByUserId(userId));
         return Response.ok(new GenericEntity<Collection<BookingRepresentation>>(bookings) {/**/
         }).type(getResourceMediaType()).build();
+    }
+
+    /**
+     * Returns link to bookings by given user.
+     * 
+     * @param id
+     *            id of user
+     * @return link to be used in header
+     */
+    public Link getUsersBookingsLink(Long id) {
+        return Link.fromUri(getUriInfo().getBaseUriBuilder()
+                                        .path(getResourceClass())
+                                        .path(getResourceClass(), "getBookingsByUser")
+                                        .build(id)).rel("usersBookings").type(getResourceMediaType()).build();
     }
 
     /**
@@ -118,9 +131,11 @@ public class BookingResource extends RepositoryResource<Booking, BookingRepresen
                       + ".");
             return Response.status(Status.FORBIDDEN).build();
         }
-        //check overlapping
-        List<Booking> overlapping = bookingRepo.getOverlapping(representation.getUsersProjects().getUser().getId(), representation.getStart(), representation.getEnd());
-        if(!overlapping.isEmpty()){
+        // check overlapping
+        List<Booking> overlapping = bookingRepo.getOverlapping(representation.getUsersProjects().getUser().getId(),
+                                                               representation.getStart(),
+                                                               representation.getEnd());
+        if (!overlapping.isEmpty()) {
             return Response.status(Status.BAD_REQUEST).entity("Booking overlaps with other booking.").build();
         }
         return super.create(representation);
@@ -135,7 +150,8 @@ public class BookingResource extends RepositoryResource<Booking, BookingRepresen
         // null check with 404 response is done by super
         if (booking != null && !booking.getUserProject().getUser().getId().equals(currentUser.getId())
             && !currentUser.getRole().equals(UserRole.ADMIN)) {
-            log.debug("Rejected deletion of " + booking + " requested by " + currentUser + " - not owner of booking.");
+            log.debug("Rejected deletion of " + booking + " requested by " + currentUser
+                      + " - not owner of booking or not Admin.");
             return Response.status(Status.FORBIDDEN).build();
         }
         return super.delete(id);
@@ -149,10 +165,9 @@ public class BookingResource extends RepositoryResource<Booking, BookingRepresen
         // current user is only allowed to get own bookings
         Booking booking = bookingRepo.get(id);
         // null check with 404 response is done by super
-        if ((booking != null && !booking.getUserProject().getUser().getId().equals(currentUser.getId()))
-            && // neither admin nor manager
-            (!currentUser.getRole().equals(UserRole.ADMIN) && !currentUser.getRole().equals(UserRole.MANAGER))) {
-            log.debug("Rejected deletion of " + booking + " requested by " + currentUser + " - not owner of booking.");
+        if ((booking != null && !ownManagerOrAdmin(booking.getUserProject().getUser().getId()))) {
+            log.debug("Rejected read of " + booking + " requested by " + currentUser
+                      + " - not owner or Admin or Manager.");
             return Response.status(Status.FORBIDDEN).build();
         }
         return super.get(id);
@@ -173,29 +188,35 @@ public class BookingResource extends RepositoryResource<Booking, BookingRepresen
         }
         return super.update(id, representation);
     }
-    
+
     /**
-     * Use this to check a booking. Bookings with overlapping intervals will be rejected.
+     * Use this to check a booking. Bookings with overlapping intervals will be
+     * rejected.
      * 
      * @param userId
-     * @param start epoch time start of interval
-     * @param end epoch time end of interval
+     * @param start
+     *            epoch time start of interval
+     * @param end
+     *            epoch time end of interval
      * @return list of bookings overlapping with given interval
      */
     @GET
     @Path("/overlapping/{userId}/{start}/{end}")
     @Produces({MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML})
-    public Response getOverlapping(@PathParam("userId") Long userId, @PathParam("start") Long start, @PathParam("end") Long end){
+    public Response getOverlapping(@PathParam("userId") Long userId, @PathParam("start") Long start,
+                                   @PathParam("end") Long end) {
         if (!ownManagerOrAdmin(userId)) {
             log.debug("Rejected request by " + currentUser + " to get overlapping bookings by user for id " + userId);
             return Response.status(Status.FORBIDDEN).build();
         }
         Collection<BookingRepresentation> bookings = getConverter().from(getUriInfo(),
-                                                                         bookingRepo.getOverlapping(userId, new Date(start), new Date(end)));
+                                                                         bookingRepo.getOverlapping(userId,
+                                                                                                    new Date(start),
+                                                                                                    new Date(end)));
         return Response.ok(new GenericEntity<Collection<BookingRepresentation>>(bookings) {/**/
         }).type(getResourceMediaType()).build();
     }
-    
+
     @Override
     public boolean permit(User user, String url, String method) {
         boolean result = super.permit(user, url, method);

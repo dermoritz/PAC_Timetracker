@@ -1,6 +1,8 @@
 package com.prodyna.pac.timtracker.webapi.resource.project;
 
 import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.ws.rs.core.UriInfo;
 
 import com.prodyna.pac.timtracker.model.Project;
@@ -15,9 +17,12 @@ import com.prodyna.pac.timtracker.webapi.RepresentationConverter;
 @RequestScoped
 public class ProjectRepresentationConverter extends RepresentationConverter.Base<ProjectRepresentation, Project> {
 
+	@Inject
+	private Provider<ProjectRepresentation> prProv;
+	
     @Override
     public ProjectRepresentation from(UriInfo uriInfo, Project source) {
-        ProjectRepresentation projectRepresentation = new ProjectRepresentation();
+        ProjectRepresentation projectRepresentation = prProv.get();
         projectRepresentation.setDescription(source.getDescription());
         projectRepresentation.setId(source.getId());
         projectRepresentation.setName(source.getName());

@@ -1,5 +1,6 @@
 package com.prodyna.pac.timtracker.webapi;
 
+import javax.inject.Inject;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.UriInfo;
 
@@ -16,6 +17,7 @@ public abstract class Linkable implements Identifiable {
     /**
      * Needed to create link - base uri.
      */
+	@Inject
     private UriInfo uriInfo;
     
     /**
@@ -29,14 +31,6 @@ public abstract class Linkable implements Identifiable {
      */
     private String self;
     
-    /**
-     * 
-     * @param uriInfo comes via resource' context.
-     */
-    public Linkable(UriInfo uriInfo) {
-        this.uriInfo = uriInfo;
-    }
-
     /**
      * 
      * @return jax-rs resource class to be used to create self reference link.
