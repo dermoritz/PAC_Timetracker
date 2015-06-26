@@ -1,5 +1,6 @@
 <?xml version="1.0"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.prodyna.pac.moritz</groupId>
@@ -7,6 +8,11 @@
 		<version>1.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>timetracker-backend</artifactId>
+	<properties>
+		<!-- per default no ddl generation -->
+		<generate.ddl>none</generate.ddl>
+		<generate.db>update</generate.db>
+	</properties>
 	<packaging>war</packaging>
 	<dependencyManagement>
 		<dependencies>
@@ -82,6 +88,12 @@
 		</dependency>
 	</dependencies>
 	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.bsc.maven</groupId>
@@ -180,6 +192,13 @@
 		</pluginManagement>
 	</build>
 	<profiles>
+		<profile>
+			<id>generateDDL</id>
+			<properties>
+				<generate.db>validate</generate.db>
+				<generate.ddl>drop-and-create</generate.ddl>
+			</properties>
+		</profile>
 		<profile>
 			<id>arquillian-wildfly-remote</id>
 			<build>
